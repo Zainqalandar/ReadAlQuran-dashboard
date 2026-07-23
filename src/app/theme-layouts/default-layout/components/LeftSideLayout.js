@@ -1,0 +1,43 @@
+import { memo } from 'react';
+import FuseScrollbars from '@fuse/core/FuseScrollbars/FuseScrollbars';
+import AnalyticsSidebarContent from 'app/theme-layouts/shared-components/AnalyticsSidebarContent';
+import { styled } from '@mui/material/styles';
+import Hidden from '@mui/material/Hidden';
+
+const StyledAside = styled('aside')(({ theme }) => ({
+  width: 286,
+  minWidth: 286,
+  height: '100dvh',
+  position: 'sticky',
+  top: 0,
+  backgroundColor: '#0f0f12',
+  borderRight: `1px solid ${theme.palette.divider}`,
+}));
+
+const StyledContent = styled(FuseScrollbars)(() => ({
+  overscrollBehavior: 'contain',
+  overflowX: 'hidden',
+  overflowY: 'auto',
+  WebkitOverflowScrolling: 'touch',
+  backgroundRepeat: 'no-repeat',
+  backgroundSize: '100% 40px, 100% 10px',
+  backgroundAttachment: 'local, scroll',
+  height: '100%', // Ensure it takes full height
+}));
+
+function LeftSideLayout() {
+  return (
+    <Hidden mdDown>
+      <StyledAside aria-label="Analytics navigation">
+        <StyledContent
+          className="flex min-h-0 flex-1 flex-col"
+          option={{ suppressScrollX: true, wheelPropagation: false }}
+        >
+          <AnalyticsSidebarContent />
+        </StyledContent>
+      </StyledAside>
+    </Hidden>
+  );
+}
+
+export default memo(LeftSideLayout);

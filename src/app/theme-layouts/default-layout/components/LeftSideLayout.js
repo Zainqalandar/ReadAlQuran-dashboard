@@ -23,6 +23,39 @@ const StyledContent = styled(FuseScrollbars)(() => ({
   backgroundSize: '100% 40px, 100% 10px',
   backgroundAttachment: 'local, scroll',
   height: '100%', // Ensure it takes full height
+  scrollbarWidth: 'thin',
+  scrollbarColor: 'rgba(201, 162, 39, .35) transparent',
+  '&::-webkit-scrollbar': {
+    width: 6,
+  },
+  '&::-webkit-scrollbar-track': {
+    backgroundColor: 'transparent',
+  },
+  '&::-webkit-scrollbar-thumb': {
+    borderRadius: 999,
+    backgroundColor: 'rgba(201, 162, 39, .35)',
+  },
+  '& .ps__rail-y': {
+    right: 2,
+    width: 6,
+    opacity: 1,
+    backgroundColor: 'transparent !important',
+  },
+  '&:hover > .ps__rail-y, &.ps--focus > .ps__rail-y, &.ps--scrolling-y > .ps__rail-y': {
+    opacity: 1,
+    backgroundColor: 'transparent !important',
+  },
+  '& .ps__thumb-y': {
+    right: 1,
+    width: 4,
+    borderRadius: 999,
+    backgroundColor: 'rgba(201, 162, 39, .26)',
+  },
+  '&:hover > .ps__rail-y > .ps__thumb-y, &.ps--focus > .ps__rail-y > .ps__thumb-y, &.ps--scrolling-y > .ps__rail-y > .ps__thumb-y, & .ps__rail-y:hover > .ps__thumb-y': {
+    right: 1,
+    width: 4,
+    backgroundColor: 'rgba(201, 162, 39, .42)',
+  },
 }));
 
 function LeftSideLayout() {

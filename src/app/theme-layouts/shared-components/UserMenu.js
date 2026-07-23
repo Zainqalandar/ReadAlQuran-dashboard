@@ -38,9 +38,15 @@ function UserMenu(props) {
         </div>
 
         {user.photo ? (
-          <Avatar className="md:mx-4" alt="user photo" src={user.photo} />
+          <Avatar
+            className="h-40 w-40 border-2 border-solid border-[#c9a227]/70 md:mx-4"
+            alt={user.name}
+            src={user.photo}
+          />
         ) : (
-          <Avatar className="md:mx-4">{user.name}</Avatar>
+          <Avatar className="h-40 w-40 md:mx-4">
+            {user.name.charAt(0)}
+          </Avatar>
         )}
       </Button>
 

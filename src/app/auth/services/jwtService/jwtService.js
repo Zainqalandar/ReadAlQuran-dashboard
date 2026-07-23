@@ -10,6 +10,7 @@ const starterUser = {
   name: 'Zain Qalandar',
   email: STARTER_EMAIL,
   role: 'admin',
+  photo: '/Zainqalandar-img.jpeg',
 };
 
 class JwtService extends FuseUtils.EventEmitter {

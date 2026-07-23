@@ -81,6 +81,27 @@ const Root = styled('div')(({ theme, ...props }) => ({
     overflowY: 'auto',
   },
 
+  [theme.breakpoints.down('sm')]: {
+    '&.FusePageSimple-scroll-page': {
+      minHeight: 'auto',
+
+      '& .FusePageSimple-wrapper': {
+        height: 'auto',
+        minHeight: 0,
+      },
+
+      '& .FusePageSimple-contentWrapper': {
+        overflow: 'visible',
+      },
+
+      '& .FusePageSimple-content': {
+        display: 'block',
+        minHeight: 'auto',
+        overflow: 'visible',
+      },
+    },
+  },
+
   '& .FusePageSimple-sidebarWrapper': {
     overflow: 'hidden',
     backgroundColor: 'transparent',
@@ -222,7 +243,7 @@ const FusePageSimple = forwardRef((props, ref) => {
         leftsidebarwidth={props.leftSidebarWidth}
         rightsidebarwidth={props.rightSidebarWidth}
       >
-        <div className="z-10 flex h-full flex-auto flex-col">
+        <div className="z-10 flex min-h-full flex-auto flex-col">
           <div className="FusePageSimple-wrapper">
             {props.leftSidebarContent && (
               <FusePageSimpleSidebar
@@ -239,7 +260,6 @@ const FusePageSimple = forwardRef((props, ref) => {
 
             <div
               className="FusePageSimple-contentWrapper"
-              // enable={props.scroll === 'page'}
             >
               {props.header && <FusePageSimpleHeader header={props.header} />}
               {props.content && (

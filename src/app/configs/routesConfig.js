@@ -5,6 +5,7 @@ import settingsConfig from 'app/configs/settingsConfig';
 import Error404Page from '../main/404/Error404Page';
 import SignInConfig from '../main/sign-in/SignInConfig';
 import DashboardPage from '../main/dashboard/DashboardPage';
+import AudiencePage from '../main/audience/AudiencePage';
 import AnalyticsWorkspacePage from '../main/analytics/AnalyticsWorkspacePage';
 
 const routeConfigs = [SignInConfig];
@@ -43,12 +44,6 @@ const analyticsViews = [
     icon: 'heroicons-outline:book-open',
   },
   {
-    path: '/analytics/audience',
-    title: 'Visitors',
-    description: 'Build a respectful picture of returning and new readers.',
-    icon: 'heroicons-outline:users',
-  },
-  {
     path: '/analytics/technology',
     title: 'Locations & devices',
     description: 'Understand reader context across regions and devices.',
@@ -82,6 +77,11 @@ const routes = [
   {
     path: '/dashboard',
     element: <DashboardPage />,
+    auth: settingsConfig.defaultAuth,
+  },
+  {
+    path: '/analytics/audience',
+    element: <AudiencePage />,
     auth: settingsConfig.defaultAuth,
   },
   ...analyticsViews.map((view) => ({

@@ -2,7 +2,7 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import FuseSvgIcon from '@fuse/core/FuseSvgIcon';
 
-function Logo() {
+function Logo({ collapsed = false }) {
   return (
     <Box
       className="flex items-center gap-12"
@@ -19,17 +19,19 @@ function Logo() {
       >
         <FuseSvgIcon size={22}>heroicons-outline:book-open</FuseSvgIcon>
       </Box>
-      <Box className="min-w-0">
-        <Typography className="truncate text-15 font-bold leading-tight">
-          Read Al Quran
-        </Typography>
-        <Typography
-          className="mt-2 text-10 font-semibold uppercase tracking-widest"
-          color="text.secondary"
-        >
-          Analytics
-        </Typography>
-      </Box>
+      {!collapsed && (
+        <Box className="min-w-0">
+          <Typography className="truncate text-15 font-bold leading-tight">
+            Read Al Quran
+          </Typography>
+          <Typography
+            className="mt-2 text-10 font-semibold uppercase tracking-widest"
+            color="text.secondary"
+          >
+            Analytics
+          </Typography>
+        </Box>
+      )}
     </Box>
   );
 }

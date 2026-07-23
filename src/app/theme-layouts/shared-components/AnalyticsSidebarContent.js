@@ -1,24 +1,49 @@
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
 import FuseSvgIcon from '@fuse/core/FuseSvgIcon';
 import Logo from './Logo';
 import Navigation from './Navigation';
 
-function AnalyticsSidebarContent() {
+function AnalyticsSidebarContent({ collapsed = false, onToggleCollapse }) {
   return (
     <div className="flex min-h-full flex-col">
-      <Box className="px-20 pb-8 pt-24">
-        <Logo />
+      <Box className={collapsed ? 'px-10 pb-8 pt-16' : 'px-20 pb-8 pt-24'}>
+        <Box className={collapsed ? 'flex flex-col items-center gap-8' : 'flex items-center justify-between gap-8'}>
+          <Logo collapsed={collapsed} />
+          {onToggleCollapse && (
+            <Tooltip title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'} placement="right">
+              <IconButton
+                aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                onClick={onToggleCollapse}
+                size="small"
+                sx={{
+                  width: 44,
+                  height: 44,
+                  color: 'text.secondary',
+                  '&:hover': { backgroundColor: 'rgba(201, 162, 39, .1)', color: 'primary.light' },
+                }}
+              >
+                <FuseSvgIcon size={18}>
+                  {collapsed
+                    ? 'heroicons-outline:chevron-double-right'
+                    : 'heroicons-outline:chevron-double-left'}
+                </FuseSvgIcon>
+              </IconButton>
+            </Tooltip>
+          )}
+        </Box>
 
         <Box
-          className="mt-24 rounded-12 px-14 py-12"
+          className={collapsed ? 'mx-auto mt-20 flex h-44 w-44 items-center justify-center rounded-12' : 'mt-24 rounded-12 px-14 py-12'}
           sx={{
             background:
               'linear-gradient(135deg, rgba(201, 162, 39, .15), rgba(31, 88, 67, .16))',
             border: '1px solid rgba(201, 162, 39, .22)',
           }}
         >
-          <Box className="flex items-start gap-10">
+          <Box className={collapsed ? 'flex items-center justify-center' : 'flex items-start gap-10'}>
             <Box
               aria-hidden="true"
               className="mt-2 flex h-28 w-28 shrink-0 items-center justify-center rounded-8"
@@ -29,7 +54,7 @@ function AnalyticsSidebarContent() {
             >
               <FuseSvgIcon size={16}>heroicons-outline:globe-alt</FuseSvgIcon>
             </Box>
-            <Box className="min-w-0">
+            {!collapsed && <Box className="min-w-0">
               <Typography className="truncate text-12 font-semibold">
                 readalquran.online
               </Typography>
@@ -49,38 +74,12 @@ function AnalyticsSidebarContent() {
                   Analytics workspace
                 </Typography>
               </Box>
-            </Box>
+            </Box>}
           </Box>
         </Box>
       </Box>
 
-      <Navigation className="pb-16" layout="vertical" />
-
-      <Box className="mt-auto px-20 pb-20 pt-12">
-        <Box
-          className="rounded-12 px-14 py-12"
-          sx={{
-            backgroundColor: 'rgba(255, 255, 255, .025)',
-            border: '1px solid #27272a',
-          }}
-        >
-          <Box className="flex items-center gap-8">
-            <FuseSvgIcon size={16} sx={{ color: '#4ade80' }}>
-              heroicons-outline:shield-check
-            </FuseSvgIcon>
-            <Typography className="text-11 font-semibold">
-              Privacy-first workspace
-            </Typography>
-          </Box>
-          <Typography
-            className="mt-6 text-10 leading-relaxed"
-            color="text.secondary"
-          >
-            Connect only the sources you trust. No visitor figures are shown
-            until a source is added.
-          </Typography>
-        </Box>
-      </Box>
+      <Navigation className={collapsed ? 'analytics-navigation--collapsed pb-16' : 'pb-16'} layout="vertical" />
     </div>
   );
 }

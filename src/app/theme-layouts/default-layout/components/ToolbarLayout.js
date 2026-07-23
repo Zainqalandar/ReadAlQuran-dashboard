@@ -9,8 +9,8 @@ import { useSelector } from 'react-redux';
 import { NavLink } from 'react-router-dom';
 import { selectToolbarTheme } from 'app/store/fuse/settingsSlice';
 import Logo from '../../shared-components/Logo';
-import UserMenu from '../../shared-components/UserMenu';
 import NavbarToggleButton from '../../shared-components/NavbarToggleButton';
+import {AnalyticsDateRangeButton} from '../../../main/analytics/AnalyticsDateRange';
 
 function ToolbarLayout(props) {
   const toolbarTheme = useSelector(selectToolbarTheme);
@@ -51,7 +51,7 @@ function ToolbarLayout(props) {
           >
             Overview
           </Button>
-          <UserMenu />
+          <AnalyticsDateRangeButton />
         </Toolbar>
       </AppBar>
     </ThemeProvider>

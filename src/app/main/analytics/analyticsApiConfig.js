@@ -1,7 +1,13 @@
-const LIVE_ALHUDA_ORIGIN = 'https://readalquran.online';
+const LIVE_ALHUDA_ORIGIN = 'https://www.readalquran.online';
 
 function normalizeOrigin(origin) {
-  return String(origin || '').trim().replace(/\/+$/, '');
+  const normalizedOrigin = String(origin || '').trim().replace(/\/+$/, '');
+
+  if (normalizedOrigin === 'https://readalquran.online') {
+    return LIVE_ALHUDA_ORIGIN;
+  }
+
+  return normalizedOrigin;
 }
 
 export const analyticsApiBase =

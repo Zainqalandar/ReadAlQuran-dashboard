@@ -21,6 +21,7 @@ import {
 import Box from '@mui/material/Box';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import FilterAltOffIcon from '@mui/icons-material/FilterAltOff';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import SearchIcon from '@mui/icons-material/Search';
 import FusePageSimple from '@fuse/core/FusePageSimple';
@@ -215,6 +216,7 @@ function AudiencePage() {
           row.browserVersion,
           row.language,
           row.screenResolution,
+          ...(row.landingPages || []).map((landingPage) => landingPage.path),
         ].some((value) => String(value || '').toLowerCase().includes(query));
 
       return matchesDevice && matchesSearch;
@@ -259,10 +261,18 @@ function AudiencePage() {
   }, [filteredRows, lastActivitySort]);
 
   useEffect(() => {
+    setSearch('');
+    setDeviceFilter('all');
     setPage(0);
     setTrafficPage(0);
     setEventPage(0);
-  }, [dateRange, deviceFilter, search]);
+  }, [dateRange]);
+
+  useEffect(() => {
+    setPage(0);
+    setTrafficPage(0);
+    setEventPage(0);
+  }, [deviceFilter, search]);
 
   const visibleRows = sortedRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
   const visibleTrafficLandingRows = filteredTrafficLandingRows.slice(
@@ -276,6 +286,7 @@ function AudiencePage() {
   const deviceSummary = analytics?.devices || [];
   const mobileUsers = deviceSummary.find((row) => row.device?.toLowerCase() === 'mobile')?.activeUsers || 0;
   const desktopUsers = deviceSummary.find((row) => row.device?.toLowerCase() === 'desktop')?.activeUsers || 0;
+  const hasTableFilters = Boolean(search.trim()) || deviceFilter !== 'all';
 
   return (
     <FusePageSimple
@@ -403,6 +414,28 @@ function AudiencePage() {
                       ),
                     }}
                   />
+                  {hasTableFilters ? (
+                    <Tooltip title="Clear table filters">
+                      <IconButton
+                        aria-label="Clear table filters"
+                        onClick={() => {
+                          setSearch('');
+                          setDeviceFilter('all');
+                        }}
+                        size="small"
+                        sx={{
+                          height: 40,
+                          width: 40,
+                          border: '1px solid rgba(201, 162, 39, .28)',
+                          color: 'primary.light',
+                          backgroundColor: 'rgba(201, 162, 39, .08)',
+                          '&:hover': { backgroundColor: 'rgba(201, 162, 39, .16)' },
+                        }}
+                      >
+                        <FilterAltOffIcon sx={{ fontSize: 18 }} />
+                      </IconButton>
+                    </Tooltip>
+                  ) : null}
                   <TextField
                     aria-label="Filter by device"
                     select
@@ -423,7 +456,7 @@ function AudiencePage() {
                 <Table stickyHeader aria-label="GA4 visitor technology details">
                   <TableHead>
                     <TableRow>
-                      {['Device', 'Operating system', 'Browser', 'Location', 'Users', 'Views', 'Engaged time', 'Last activity'].map((heading) => (
+                      {['Device', 'Operating system', 'Browser', 'Location', 'Landing pages', 'Users', 'Views', 'Engaged time', 'Last activity'].map((heading) => (
                         <TableCell
                           key={heading}
                           sx={{
@@ -511,6 +544,37 @@ function AudiencePage() {
                               {readable(row.country)}
                             </Typography>
                           </TableCell>
+                          <TableCell sx={{ minWidth: 260, maxWidth: 360 }}>
+                            {row.landingPages?.length ? (
+                              <Box className="flex max-w-[340px] flex-col gap-6">
+                                {row.landingPages.slice(0, 3).map((landingPage, landingIndex) => (
+                                  <Tooltip
+                                    key={`${landingPage.path}-${landingIndex}`}
+                                    title={`${readable(landingPage.path)} · ${formatNumber(landingPage.sessions)} sessions`}
+                                    placement="top-start"
+                                  >
+                                    <Box className="flex items-center justify-between gap-10">
+                                      <Typography className="truncate text-12 font-semibold">
+                                        {readable(landingPage.path)}
+                                      </Typography>
+                                      <Typography className="shrink-0 text-10" color="text.secondary">
+                                        {formatNumber(landingPage.sessions)}
+                                      </Typography>
+                                    </Box>
+                                  </Tooltip>
+                                ))}
+                                {row.landingPages.length > 3 ? (
+                                  <Typography className="text-10" color="text.secondary">
+                                    +{row.landingPages.length - 3} more
+                                  </Typography>
+                                ) : null}
+                              </Box>
+                            ) : (
+                              <Typography className="text-12" color="text.secondary">
+                                N/A
+                              </Typography>
+                            )}
+                          </TableCell>
                           <TableCell sx={{ whiteSpace: 'nowrap' }}>
                             <Typography className="text-13 font-bold">{formatNumber(row.activeUsers)}</Typography>
                           </TableCell>
@@ -532,10 +596,27 @@ function AudiencePage() {
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell align="center" colSpan={8} sx={{ borderColor: '#27272a', py: 48 }}>
+                        <TableCell align="center" colSpan={9} sx={{ borderColor: '#27272a', py: 48 }}>
                           <Typography className="text-13" color="text.secondary">
-                            No matching GA4 audience data yet.
+                            {rows.length
+                              ? 'No rows match the current table filters.'
+                              : 'No processed GA4 audience data is available for this date range yet.'}
                           </Typography>
+                          {rows.length && hasTableFilters ? (
+                            <Button
+                              className="mt-12"
+                              color="primary"
+                              onClick={() => {
+                                setSearch('');
+                                setDeviceFilter('all');
+                              }}
+                              size="small"
+                              startIcon={<FilterAltOffIcon />}
+                              variant="outlined"
+                            >
+                              Clear filters
+                            </Button>
+                          ) : null}
                         </TableCell>
                       </TableRow>
                     )}

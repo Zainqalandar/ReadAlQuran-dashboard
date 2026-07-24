@@ -19,9 +19,7 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import FusePageSimple from '@fuse/core/FusePageSimple';
 import FuseSvgIcon from '@fuse/core/FuseSvgIcon';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-
-const analyticsApiBase =
-  process.env.REACT_APP_ALHUDA_API_BASE || 'http://localhost:3001';
+import { alhudaAdminUrl, analyticsApiBase } from '../analytics/analyticsApiConfig';
 
 function formatNumber(value) {
   return new Intl.NumberFormat('en-US').format(Math.round(Number(value || 0)));
@@ -403,7 +401,7 @@ function LiveActivityPage() {
               <Alert
                 severity="warning"
                 action={
-                  <Button color="inherit" href={`${analyticsApiBase}/admin`} size="small" target="_blank">
+                  <Button color="inherit" href={alhudaAdminUrl} size="small" target="_blank">
                     Open admin
                   </Button>
                 }

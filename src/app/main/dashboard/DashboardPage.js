@@ -16,9 +16,7 @@ import {
   formatAnalyticsDateRange,
   useAnalyticsDateRange,
 } from '../analytics/AnalyticsDateRange';
-
-const analyticsApiBase =
-  process.env.REACT_APP_ALHUDA_API_BASE || 'http://localhost:3001';
+import { alhudaAdminUrl, analyticsApiBase } from '../analytics/analyticsApiConfig';
 
 function formatNumber(value) {
   return new Intl.NumberFormat('en-US').format(Math.round(Number(value || 0)));
@@ -271,7 +269,7 @@ function DashboardPage() {
                 action={
                   <Button
                     color="inherit"
-                    href={`${analyticsApiBase}/admin`}
+                    href={alhudaAdminUrl}
                     size="small"
                     target="_blank"
                   >

@@ -1,3 +1,4 @@
+// Production analytics must use the canonical Al-Huda origin.
 const LIVE_ALHUDA_ORIGIN = 'https://www.readalquran.online';
 
 function normalizeOrigin(origin) {

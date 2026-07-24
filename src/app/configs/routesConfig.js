@@ -6,24 +6,13 @@ import Error404Page from '../main/404/Error404Page';
 import SignInConfig from '../main/sign-in/SignInConfig';
 import DashboardPage from '../main/dashboard/DashboardPage';
 import AudiencePage from '../main/audience/AudiencePage';
+import LiveActivityPage from '../main/live/LiveActivityPage';
+import TrafficQualityPage from '../main/traffic/TrafficQualityPage';
 import AnalyticsWorkspacePage from '../main/analytics/AnalyticsWorkspacePage';
 
 const routeConfigs = [SignInConfig];
 
 const analyticsViews = [
-  {
-    path: '/analytics/live',
-    title: 'Live activity',
-    description:
-      'Monitor current reader activity as soon as a data source is connected.',
-    icon: 'heroicons-outline:lightning-bolt',
-  },
-  {
-    path: '/analytics/traffic',
-    title: 'Traffic sources',
-    description: 'See how readers discover readalquran.online across the web.',
-    icon: 'heroicons-outline:cursor-click',
-  },
   {
     path: '/analytics/search',
     title: 'Search performance',
@@ -82,6 +71,16 @@ const routes = [
   {
     path: '/analytics/audience',
     element: <AudiencePage />,
+    auth: settingsConfig.defaultAuth,
+  },
+  {
+    path: '/analytics/live',
+    element: <LiveActivityPage />,
+    auth: settingsConfig.defaultAuth,
+  },
+  {
+    path: '/analytics/traffic',
+    element: <TrafficQualityPage />,
     auth: settingsConfig.defaultAuth,
   },
   ...analyticsViews.map((view) => ({

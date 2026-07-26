@@ -22,12 +22,15 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import SearchIcon from '@mui/icons-material/Search';
 import FusePageSimple from '@fuse/core/FusePageSimple';
 import FuseSvgIcon from '@fuse/core/FuseSvgIcon';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   formatAnalyticsDateRange,
   useAnalyticsDateRange,
 } from '../analytics/AnalyticsDateRange';
-import { alhudaAdminUrl, analyticsApiBase } from '../analytics/analyticsApiConfig';
+import { getAnalyticsErrorMessage, useGetAnalyticsQuery } from '../analytics/analyticsApi';
+import { alhudaAdminUrl } from '../analytics/analyticsApiConfig';
+
+const EMPTY_ROWS = [];
 
 function formatNumber(value) {
   return new Intl.NumberFormat('en-US').format(Math.round(Number(value || 0)));
@@ -51,20 +54,6 @@ function formatDuration(value) {
 
 function readable(value, fallback = '—') {
   return !value || value === '(not set)' ? fallback : value;
-}
-
-async function fetchAnalyticsReport(query) {
-  const response = await fetch(`${analyticsApiBase}/api/admin/analytics?${query}`, {
-    credentials: 'include',
-    headers: { Accept: 'application/json' },
-  });
-  const payload = await response.json().catch(() => ({}));
-
-  if (!response.ok) {
-    throw new Error(payload.message || 'Unable to load traffic quality data.');
-  }
-
-  return payload;
 }
 
 function qualityColor(rate) {
@@ -123,54 +112,23 @@ const tableCellSx = {
 
 function TrafficQualityPage() {
   const { dateRange } = useAnalyticsDateRange();
-  const [analytics, setAnalytics] = useState(null);
-  const [status, setStatus] = useState('loading');
-  const [error, setError] = useState('');
+  const {
+    data: analytics,
+    error: analyticsError,
+    isError,
+    isFetching,
+    isLoading,
+    refetch,
+  } = useGetAnalyticsQuery({ dateRange, view: 'traffic' });
   const [search, setSearch] = useState('');
   const [qualityPage, setQualityPage] = useState(0);
   const [landingPage, setLandingPage] = useState(0);
   const [eventPage, setEventPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-
-  const isLoading = status === 'loading' || status === 'refreshing';
-
-  const loadTrafficQuality = useCallback(async (mode = 'loading') => {
-    setStatus(mode);
-    setError('');
-
-    try {
-      const query = new URLSearchParams({ ...dateRange, view: 'traffic' }).toString();
-      let payload = await fetchAnalyticsReport(query);
-
-      if (!payload.pageEventDetails?.length) {
-        const fallbackQuery = new URLSearchParams(dateRange).toString();
-
-        try {
-          const fallbackPayload = await fetchAnalyticsReport(fallbackQuery);
-
-          if (fallbackPayload.pageEventDetails?.length) {
-            payload = {
-              ...payload,
-              pageEventDetails: fallbackPayload.pageEventDetails,
-              pageEventDetailsMeta: fallbackPayload.pageEventDetailsMeta,
-            };
-          }
-        } catch (fallbackError) {
-          console.warn('[traffic analytics] Unable to load page event fallback', fallbackError);
-        }
-      }
-
-      setAnalytics(payload);
-      setStatus('ready');
-    } catch (requestError) {
-      setError(requestError.message || 'Unable to load traffic quality data.');
-      setStatus('error');
-    }
-  }, [dateRange]);
-
-  useEffect(() => {
-    loadTrafficQuality();
-  }, [loadTrafficQuality]);
+  const error = getAnalyticsErrorMessage(
+    analyticsError,
+    'Unable to load traffic quality data.'
+  );
 
   useEffect(() => {
     setSearch('');
@@ -179,9 +137,9 @@ function TrafficQualityPage() {
     setEventPage(0);
   }, [dateRange]);
 
-  const qualityRows = analytics?.trafficQuality || [];
-  const landingRows = analytics?.trafficLandingDetails || [];
-  const pageEventRows = analytics?.pageEventDetails || [];
+  const qualityRows = analytics?.trafficQuality || EMPTY_ROWS;
+  const landingRows = analytics?.trafficLandingDetails || EMPTY_ROWS;
+  const pageEventRows = analytics?.pageEventDetails || EMPTY_ROWS;
   const query = search.trim().toLowerCase();
   const filteredQualityRows = useMemo(
     () => qualityRows.filter((row) => !query || [row.channel, row.sourceMedium].some((value) =>
@@ -260,13 +218,13 @@ function TrafficQualityPage() {
                   Updated {new Date(analytics.generatedAt).toLocaleString()}
                 </Typography>
               ) : null}
-              <Tooltip title={isLoading ? 'Refreshing traffic data' : 'Refresh traffic data'}>
+              <Tooltip title={isFetching ? 'Refreshing traffic data' : 'Refresh traffic data'}>
                 <span>
                   <IconButton
                     aria-label="Refresh traffic quality data"
                     className="h-36 w-36 border border-solid"
-                    disabled={isLoading}
-                    onClick={() => loadTrafficQuality('refreshing')}
+                    disabled={isFetching}
+                    onClick={refetch}
                     size="small"
                     sx={{
                       borderColor: 'rgba(201, 162, 39, .38)',
@@ -275,7 +233,7 @@ function TrafficQualityPage() {
                       '&:hover': { backgroundColor: 'rgba(201, 162, 39, .16)' },
                     }}
                   >
-                    <RefreshIcon className={isLoading ? 'animate-spin' : ''} sx={{ fontSize: 18 }} />
+                    <RefreshIcon className={isFetching ? 'animate-spin' : ''} sx={{ fontSize: 18 }} />
                   </IconButton>
                 </span>
               </Tooltip>
@@ -286,7 +244,7 @@ function TrafficQualityPage() {
       content={
         <Box className="w-full p-24 sm:p-40">
           <Box className="mx-auto flex w-full max-w-[1600px] flex-col gap-20">
-            {status === 'loading' ? (
+            {isLoading ? (
               <Paper
                 className="overflow-hidden rounded-14 p-20"
                 elevation={0}
@@ -297,7 +255,7 @@ function TrafficQualityPage() {
               </Paper>
             ) : null}
 
-            {status === 'error' ? (
+            {isError ? (
               <Alert
                 severity="warning"
                 action={

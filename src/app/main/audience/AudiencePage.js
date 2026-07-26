@@ -26,12 +26,15 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import SearchIcon from '@mui/icons-material/Search';
 import FusePageSimple from '@fuse/core/FusePageSimple';
 import FuseSvgIcon from '@fuse/core/FuseSvgIcon';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   formatAnalyticsDateRange,
   useAnalyticsDateRange,
 } from '../analytics/AnalyticsDateRange';
-import { alhudaAdminUrl, analyticsApiBase } from '../analytics/analyticsApiConfig';
+import { getAnalyticsErrorMessage, useGetAnalyticsQuery } from '../analytics/analyticsApi';
+import { alhudaAdminUrl } from '../analytics/analyticsApiConfig';
+
+const EMPTY_ROWS = [];
 
 function formatNumber(value) {
   return new Intl.NumberFormat('en-US').format(Math.round(Number(value || 0)));
@@ -149,46 +152,22 @@ function SummaryCard({ label, value, icon }) {
 
 function AudiencePage() {
   const { dateRange } = useAnalyticsDateRange();
-  const [analytics, setAnalytics] = useState(null);
-  const [status, setStatus] = useState('loading');
-  const [error, setError] = useState('');
+  const {
+    data: analytics,
+    error: analyticsError,
+    isError,
+    isFetching,
+    isLoading,
+    refetch,
+  } = useGetAnalyticsQuery({ dateRange });
   const [search, setSearch] = useState('');
   const [deviceFilter, setDeviceFilter] = useState('all');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [lastActivitySort, setLastActivitySort] = useState('desc');
+  const error = getAnalyticsErrorMessage(analyticsError, 'Unable to load audience data.');
 
-  const isLoading = status === 'loading' || status === 'refreshing';
-
-  const loadAudience = useCallback(async (mode = 'loading') => {
-    setStatus(mode);
-    setError('');
-
-    try {
-      const query = new URLSearchParams(dateRange).toString();
-      const response = await fetch(`${analyticsApiBase}/api/admin/analytics?${query}`, {
-        credentials: 'include',
-        headers: { Accept: 'application/json' },
-      });
-      const payload = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error(payload.message || 'Unable to load audience data.');
-      }
-
-      setAnalytics(payload);
-      setStatus('ready');
-    } catch (requestError) {
-      setError(requestError.message || 'Unable to load audience data.');
-      setStatus('error');
-    }
-  }, [dateRange]);
-
-  useEffect(() => {
-    loadAudience();
-  }, [loadAudience]);
-
-  const rows = analytics?.audienceDetails || [];
+  const rows = analytics?.audienceDetails || EMPTY_ROWS;
 
   const filteredRows = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -275,13 +254,13 @@ function AudiencePage() {
                   Updated {new Date(analytics.generatedAt).toLocaleString()}
                 </Typography>
               ) : null}
-              <Tooltip title={isLoading ? 'Refreshing audience data' : 'Refresh audience data'}>
+              <Tooltip title={isFetching ? 'Refreshing audience data' : 'Refresh audience data'}>
                 <span>
                   <IconButton
                     aria-label="Refresh audience data"
                     className="h-36 w-36 border border-solid"
-                    disabled={isLoading}
-                    onClick={() => loadAudience('refreshing')}
+                    disabled={isFetching}
+                    onClick={refetch}
                     size="small"
                     sx={{
                       borderColor: 'rgba(201, 162, 39, .38)',
@@ -290,7 +269,7 @@ function AudiencePage() {
                       '&:hover': { backgroundColor: 'rgba(201, 162, 39, .16)' },
                     }}
                   >
-                    <RefreshIcon className={isLoading ? 'animate-spin' : ''} sx={{ fontSize: 18 }} />
+                    <RefreshIcon className={isFetching ? 'animate-spin' : ''} sx={{ fontSize: 18 }} />
                   </IconButton>
                 </span>
               </Tooltip>
@@ -301,7 +280,7 @@ function AudiencePage() {
       content={
         <Box className="w-full p-24 sm:p-40">
           <Box className="mx-auto flex w-full max-w-[1600px] flex-col gap-20">
-            {status === 'loading' ? (
+            {isLoading ? (
               <Paper
                 className="overflow-hidden rounded-14 p-20"
                 elevation={0}
@@ -312,7 +291,7 @@ function AudiencePage() {
               </Paper>
             ) : null}
 
-            {status === 'error' ? (
+            {isError ? (
               <Alert
                 severity="warning"
                 action={

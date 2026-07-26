@@ -1,4 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
+import { analyticsApi } from '../main/analytics/analyticsApi';
 import createReducer from './rootReducer';
 
 if (process.env.NODE_ENV === 'development' && module.hot) {
@@ -22,7 +23,7 @@ const store = configureStore({
       getDefaultMiddleware({
         immutableCheck: false,
         serializableCheck: false,
-      }).concat(middlewares),
+      }).concat(analyticsApi.middleware, middlewares),
   devTools: process.env.NODE_ENV === 'development',
 });
 

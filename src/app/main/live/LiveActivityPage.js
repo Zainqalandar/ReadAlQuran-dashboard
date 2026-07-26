@@ -18,8 +18,11 @@ import Box from '@mui/material/Box';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import FusePageSimple from '@fuse/core/FusePageSimple';
 import FuseSvgIcon from '@fuse/core/FuseSvgIcon';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { alhudaAdminUrl, analyticsApiBase } from '../analytics/analyticsApiConfig';
+import { useMemo } from 'react';
+import { getAnalyticsErrorMessage, useGetAnalyticsQuery } from '../analytics/analyticsApi';
+import { alhudaAdminUrl } from '../analytics/analyticsApiConfig';
+
+const EMPTY_ROWS = [];
 
 function formatNumber(value) {
   return new Intl.NumberFormat('en-US').format(Math.round(Number(value || 0)));
@@ -279,40 +282,20 @@ function RealtimeMetric({ label, value, icon, helper }) {
 }
 
 function LiveActivityPage() {
-  const [analytics, setAnalytics] = useState(null);
-  const [status, setStatus] = useState('loading');
-  const [error, setError] = useState('');
+  const {
+    data: analytics,
+    error: analyticsError,
+    isError,
+    isFetching,
+    isLoading,
+    refetch,
+  } = useGetAnalyticsQuery({ view: 'live' });
+  const error = getAnalyticsErrorMessage(
+    analyticsError,
+    'Unable to load realtime activity.'
+  );
 
-  const isLoading = status === 'loading' || status === 'refreshing';
-
-  const loadRealtimeActivity = useCallback(async (mode = 'loading') => {
-    setStatus(mode);
-    setError('');
-
-    try {
-      const response = await fetch(`${analyticsApiBase}/api/admin/analytics?view=live`, {
-        credentials: 'include',
-        headers: { Accept: 'application/json' },
-      });
-      const payload = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error(payload.message || 'Unable to load realtime activity.');
-      }
-
-      setAnalytics(payload);
-      setStatus('ready');
-    } catch (requestError) {
-      setError(requestError.message || 'Unable to load realtime activity.');
-      setStatus('error');
-    }
-  }, []);
-
-  useEffect(() => {
-    loadRealtimeActivity();
-  }, [loadRealtimeActivity]);
-
-  const activityRows = analytics?.realtime?.activity || [];
+  const activityRows = analytics?.realtime?.activity || EMPTY_ROWS;
   const hasAggregateFallback = activityRows.some((row) => row.isAggregateFallback);
   const realtimeEvents = useMemo(
     () => activityRows.reduce((total, row) => total + Number(row.eventCount || 0), 0),
@@ -360,13 +343,13 @@ function LiveActivityPage() {
                   Updated {new Date(analytics.generatedAt).toLocaleTimeString()}
                 </Typography>
               ) : null}
-              <Tooltip title={isLoading ? 'Refreshing live activity' : 'Refresh live activity'}>
+              <Tooltip title={isFetching ? 'Refreshing live activity' : 'Refresh live activity'}>
                 <span>
                   <IconButton
                     aria-label="Refresh live activity"
                     className="h-36 w-36 border border-solid"
-                    disabled={isLoading}
-                    onClick={() => loadRealtimeActivity('refreshing')}
+                    disabled={isFetching}
+                    onClick={refetch}
                     size="small"
                     sx={{
                       borderColor: 'rgba(201, 162, 39, .38)',
@@ -375,7 +358,7 @@ function LiveActivityPage() {
                       '&:hover': { backgroundColor: 'rgba(201, 162, 39, .16)' },
                     }}
                   >
-                    <RefreshIcon className={isLoading ? 'animate-spin' : ''} sx={{ fontSize: 18 }} />
+                    <RefreshIcon className={isFetching ? 'animate-spin' : ''} sx={{ fontSize: 18 }} />
                   </IconButton>
                 </span>
               </Tooltip>
@@ -386,7 +369,7 @@ function LiveActivityPage() {
       content={
         <Box className="w-full p-24 sm:p-40">
           <Box className="mx-auto flex w-full max-w-[1440px] flex-col gap-20">
-            {status === 'loading' ? (
+            {isLoading ? (
               <Paper
                 className="overflow-hidden rounded-14 p-20"
                 elevation={0}
@@ -397,7 +380,7 @@ function LiveActivityPage() {
               </Paper>
             ) : null}
 
-            {status === 'error' ? (
+            {isError ? (
               <Alert
                 severity="warning"
                 action={

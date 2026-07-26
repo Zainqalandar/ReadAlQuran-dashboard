@@ -53,6 +53,20 @@ function readable(value, fallback = '—') {
   return !value || value === '(not set)' ? fallback : value;
 }
 
+async function fetchAnalyticsReport(query) {
+  const response = await fetch(`${analyticsApiBase}/api/admin/analytics?${query}`, {
+    credentials: 'include',
+    headers: { Accept: 'application/json' },
+  });
+  const payload = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(payload.message || 'Unable to load traffic quality data.');
+  }
+
+  return payload;
+}
+
 function qualityColor(rate) {
   const value = Number(rate || 0);
 
@@ -115,6 +129,7 @@ function TrafficQualityPage() {
   const [search, setSearch] = useState('');
   const [qualityPage, setQualityPage] = useState(0);
   const [landingPage, setLandingPage] = useState(0);
+  const [eventPage, setEventPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const isLoading = status === 'loading' || status === 'refreshing';
@@ -125,14 +140,24 @@ function TrafficQualityPage() {
 
     try {
       const query = new URLSearchParams({ ...dateRange, view: 'traffic' }).toString();
-      const response = await fetch(`${analyticsApiBase}/api/admin/analytics?${query}`, {
-        credentials: 'include',
-        headers: { Accept: 'application/json' },
-      });
-      const payload = await response.json().catch(() => ({}));
+      let payload = await fetchAnalyticsReport(query);
 
-      if (!response.ok) {
-        throw new Error(payload.message || 'Unable to load traffic quality data.');
+      if (!payload.pageEventDetails?.length) {
+        const fallbackQuery = new URLSearchParams(dateRange).toString();
+
+        try {
+          const fallbackPayload = await fetchAnalyticsReport(fallbackQuery);
+
+          if (fallbackPayload.pageEventDetails?.length) {
+            payload = {
+              ...payload,
+              pageEventDetails: fallbackPayload.pageEventDetails,
+              pageEventDetailsMeta: fallbackPayload.pageEventDetailsMeta,
+            };
+          }
+        } catch (fallbackError) {
+          console.warn('[traffic analytics] Unable to load page event fallback', fallbackError);
+        }
       }
 
       setAnalytics(payload);
@@ -151,10 +176,12 @@ function TrafficQualityPage() {
     setSearch('');
     setQualityPage(0);
     setLandingPage(0);
+    setEventPage(0);
   }, [dateRange]);
 
   const qualityRows = analytics?.trafficQuality || [];
   const landingRows = analytics?.trafficLandingDetails || [];
+  const pageEventRows = analytics?.pageEventDetails || [];
   const query = search.trim().toLowerCase();
   const filteredQualityRows = useMemo(
     () => qualityRows.filter((row) => !query || [row.channel, row.sourceMedium].some((value) =>
@@ -168,10 +195,17 @@ function TrafficQualityPage() {
     )),
     [landingRows, query]
   );
+  const filteredPageEventRows = useMemo(
+    () => pageEventRows.filter((row) => !query || [row.pagePath, row.pageTitle, row.eventName].some((value) =>
+      String(value || '').toLowerCase().includes(query)
+    )),
+    [pageEventRows, query]
+  );
 
   useEffect(() => {
     setQualityPage(0);
     setLandingPage(0);
+    setEventPage(0);
   }, [search]);
 
   const visibleQualityRows = filteredQualityRows.slice(
@@ -181,6 +215,10 @@ function TrafficQualityPage() {
   const visibleLandingRows = filteredLandingRows.slice(
     landingPage * rowsPerPage,
     landingPage * rowsPerPage + rowsPerPage
+  );
+  const visiblePageEventRows = filteredPageEventRows.slice(
+    eventPage * rowsPerPage,
+    eventPage * rowsPerPage + rowsPerPage
   );
   const monthly = analytics?.monthly || {};
   const viewsPerSession = Number(monthly.sessions)
@@ -420,6 +458,7 @@ function TrafficQualityPage() {
                   setRowsPerPage(Number(event.target.value));
                   setQualityPage(0);
                   setLandingPage(0);
+                  setEventPage(0);
                 }}
                 sx={{ borderTop: '1px solid #27272a', color: 'text.secondary' }}
               />
@@ -517,6 +556,102 @@ function TrafficQualityPage() {
                 onPageChange={(_, nextPage) => setLandingPage(nextPage)}
                 onRowsPerPageChange={(event) => {
                   setRowsPerPage(Number(event.target.value));
+                  setLandingPage(0);
+                  setQualityPage(0);
+                  setEventPage(0);
+                }}
+                sx={{ borderTop: '1px solid #27272a', color: 'text.secondary' }}
+              />
+            </Paper>
+
+            <Paper
+              className="overflow-hidden rounded-14"
+              elevation={0}
+              sx={{ backgroundColor: 'background.paper', border: '1px solid #27272a' }}
+            >
+              <Box className="border-b p-20" sx={{ borderColor: '#27272a' }}>
+                <Typography className="text-16 font-bold">Page paths and events</Typography>
+                <Typography className="mt-4 text-12" color="text.secondary">
+                  Shows page activity and the GA4 events reported on those pages.
+                </Typography>
+              </Box>
+
+              <TableContainer sx={{ maxHeight: 580 }}>
+                <Table stickyHeader aria-label="GA4 page path and event details">
+                  <TableHead>
+                    <TableRow>
+                      {['Page path', 'Page title', 'Event name', 'Event count', 'Users', 'Views', 'Engaged time'].map((heading) => (
+                        <TableCell key={heading} sx={tableCellSx}>{heading}</TableCell>
+                      ))}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {visiblePageEventRows.length ? (
+                      visiblePageEventRows.map((row, index) => (
+                        <TableRow
+                          hover
+                          key={`${row.pagePath}-${row.eventName}-${index}`}
+                          sx={{ '& td': { borderColor: '#27272a' } }}
+                        >
+                          <TableCell sx={{ minWidth: 260, maxWidth: 400 }}>
+                            <Tooltip title={readable(row.pagePath)} placement="top-start">
+                              <Typography className="truncate text-12 font-semibold">{readable(row.pagePath)}</Typography>
+                            </Tooltip>
+                          </TableCell>
+                          <TableCell sx={{ minWidth: 240, maxWidth: 380 }}>
+                            <Tooltip title={readable(row.pageTitle)} placement="top-start">
+                              <Typography className="truncate text-12">{readable(row.pageTitle)}</Typography>
+                            </Tooltip>
+                          </TableCell>
+                          <TableCell sx={{ minWidth: 150 }}>
+                            <Chip
+                              label={readable(row.eventName)}
+                              size="small"
+                              sx={{
+                                height: 23,
+                                backgroundColor: 'rgba(46, 158, 118, .14)',
+                                color: '#7ee6bb',
+                                fontSize: 11,
+                                fontWeight: 700,
+                              }}
+                            />
+                          </TableCell>
+                          <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                            <Typography className="text-13 font-bold">{formatNumber(row.eventCount)}</Typography>
+                          </TableCell>
+                          <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                            <Typography className="text-12">{formatNumber(row.activeUsers)}</Typography>
+                          </TableCell>
+                          <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                            <Typography className="text-12">{formatNumber(row.pageViews)}</Typography>
+                          </TableCell>
+                          <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                            <Typography className="text-12">{formatDuration(Number(row.engagementMinutes || 0) * 60)}</Typography>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell align="center" colSpan={7} sx={{ borderColor: '#27272a', py: 48 }}>
+                          <Typography className="text-13" color="text.secondary">
+                            No matching page event data yet.
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+              <TablePagination
+                component="div"
+                count={filteredPageEventRows.length}
+                page={eventPage}
+                rowsPerPage={rowsPerPage}
+                rowsPerPageOptions={[10, 25, 50]}
+                onPageChange={(_, nextPage) => setEventPage(nextPage)}
+                onRowsPerPageChange={(event) => {
+                  setRowsPerPage(Number(event.target.value));
+                  setEventPage(0);
                   setLandingPage(0);
                   setQualityPage(0);
                 }}

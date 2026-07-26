@@ -47,10 +47,6 @@ function formatMinutes(value) {
   return `${formatNumber(minutes / 60)} hr`;
 }
 
-function formatPercent(value) {
-  return `${(Number(value || 0) * 100).toFixed(1)}%`;
-}
-
 function parseGaDateHourMinute(value) {
   if (!value || !/^\d{12}$/.test(value)) {
     return null;
@@ -159,8 +155,6 @@ function AudiencePage() {
   const [search, setSearch] = useState('');
   const [deviceFilter, setDeviceFilter] = useState('all');
   const [page, setPage] = useState(0);
-  const [trafficPage, setTrafficPage] = useState(0);
-  const [eventPage, setEventPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [lastActivitySort, setLastActivitySort] = useState('desc');
 
@@ -195,8 +189,6 @@ function AudiencePage() {
   }, [loadAudience]);
 
   const rows = analytics?.audienceDetails || [];
-  const trafficLandingRows = analytics?.trafficLandingDetails || [];
-  const pageEventRows = analytics?.pageEventDetails || [];
 
   const filteredRows = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -221,34 +213,6 @@ function AudiencePage() {
     });
   }, [deviceFilter, rows, search]);
 
-  const filteredTrafficLandingRows = useMemo(() => {
-    const query = search.trim().toLowerCase();
-
-    if (!query) {
-      return trafficLandingRows;
-    }
-
-    return trafficLandingRows.filter((row) =>
-      [row.channel, row.sourceMedium, row.landingPage].some((value) =>
-        String(value || '').toLowerCase().includes(query)
-      )
-    );
-  }, [search, trafficLandingRows]);
-
-  const filteredPageEventRows = useMemo(() => {
-    const query = search.trim().toLowerCase();
-
-    if (!query) {
-      return pageEventRows;
-    }
-
-    return pageEventRows.filter((row) =>
-      [row.pagePath, row.pageTitle, row.eventName].some((value) =>
-        String(value || '').toLowerCase().includes(query)
-      )
-    );
-  }, [pageEventRows, search]);
-
   const sortedRows = useMemo(() => {
     return [...filteredRows].sort((firstRow, secondRow) => {
       const firstDate = parseGaDateHourMinute(firstRow.lastActivityAt)?.getTime() || 0;
@@ -262,25 +226,13 @@ function AudiencePage() {
     setSearch('');
     setDeviceFilter('all');
     setPage(0);
-    setTrafficPage(0);
-    setEventPage(0);
   }, [dateRange]);
 
   useEffect(() => {
     setPage(0);
-    setTrafficPage(0);
-    setEventPage(0);
   }, [deviceFilter, search]);
 
   const visibleRows = sortedRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
-  const visibleTrafficLandingRows = filteredTrafficLandingRows.slice(
-    trafficPage * rowsPerPage,
-    trafficPage * rowsPerPage + rowsPerPage
-  );
-  const visiblePageEventRows = filteredPageEventRows.slice(
-    eventPage * rowsPerPage,
-    eventPage * rowsPerPage + rowsPerPage
-  );
   const deviceSummary = analytics?.devices || [];
   const mobileUsers = deviceSummary.find((row) => row.device?.toLowerCase() === 'mobile')?.activeUsers || 0;
   const desktopUsers = deviceSummary.find((row) => row.device?.toLowerCase() === 'desktop')?.activeUsers || 0;
@@ -630,231 +582,6 @@ function AudiencePage() {
                 onPageChange={(_, nextPage) => setPage(nextPage)}
                 onRowsPerPageChange={(event) => {
                   setRowsPerPage(Number(event.target.value));
-                  setPage(0);
-                  setTrafficPage(0);
-                  setEventPage(0);
-                }}
-                sx={{ borderTop: '1px solid #27272a', color: 'text.secondary' }}
-              />
-            </Paper>
-
-            <Paper
-              className="overflow-hidden rounded-14"
-              elevation={0}
-              sx={{ backgroundColor: 'background.paper', border: '1px solid #27272a' }}
-            >
-              <Box className="border-b p-20" sx={{ borderColor: '#27272a' }}>
-                <Typography className="text-16 font-bold">Traffic source and landing pages</Typography>
-                <Typography className="mt-4 text-12" color="text.secondary">
-                  Shows where sessions came from and which page visitors landed on first.
-                </Typography>
-              </Box>
-
-              <TableContainer sx={{ maxHeight: 520 }}>
-                <Table stickyHeader aria-label="GA4 traffic source and landing page details">
-                  <TableHead>
-                    <TableRow>
-                      {['Traffic source', 'Channel', 'Landing page', 'Sessions', 'Engaged sessions', 'Engagement rate', 'Views', 'Users', 'Engaged time'].map((heading) => (
-                        <TableCell
-                          key={heading}
-                          sx={{
-                            whiteSpace: 'nowrap',
-                            backgroundColor: '#18181c',
-                            borderColor: '#2b2b31',
-                            color: 'text.secondary',
-                            fontSize: 11,
-                            fontWeight: 700,
-                            letterSpacing: '.04em',
-                            textTransform: 'uppercase',
-                          }}
-                        >
-                          {heading}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {visibleTrafficLandingRows.length ? (
-                      visibleTrafficLandingRows.map((row, index) => (
-                        <TableRow
-                          hover
-                          key={`${row.sourceMedium}-${row.landingPage}-${index}`}
-                          sx={{ '& td': { borderColor: '#27272a' } }}
-                        >
-                          <TableCell sx={{ minWidth: 190 }}>
-                            <Typography className="text-12 font-semibold">{readable(row.sourceMedium)}</Typography>
-                          </TableCell>
-                          <TableCell sx={{ minWidth: 150 }}>
-                            <Chip
-                              label={readable(row.channel)}
-                              size="small"
-                              sx={{
-                                height: 23,
-                                backgroundColor: 'rgba(201, 162, 39, .13)',
-                                border: '1px solid rgba(201, 162, 39, .22)',
-                                color: 'primary.light',
-                                fontSize: 11,
-                                fontWeight: 700,
-                              }}
-                            />
-                          </TableCell>
-                          <TableCell sx={{ minWidth: 280, maxWidth: 420 }}>
-                            <Tooltip title={readable(row.landingPage)} placement="top-start">
-                              <Typography className="truncate text-12 font-semibold">{readable(row.landingPage)}</Typography>
-                            </Tooltip>
-                          </TableCell>
-                          <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                            <Typography className="text-13 font-bold">{formatNumber(row.sessions)}</Typography>
-                          </TableCell>
-                          <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                            <Typography className="text-12">{formatNumber(row.engagedSessions)}</Typography>
-                          </TableCell>
-                          <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                            <Typography className="text-12">{formatPercent(row.engagementRate)}</Typography>
-                          </TableCell>
-                          <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                            <Typography className="text-12">{formatNumber(row.pageViews)}</Typography>
-                          </TableCell>
-                          <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                            <Typography className="text-12">{formatNumber(row.activeUsers)}</Typography>
-                          </TableCell>
-                          <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                            <Typography className="text-12">{formatMinutes(row.engagementMinutes)}</Typography>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell align="center" colSpan={9} sx={{ borderColor: '#27272a', py: 44 }}>
-                          <Typography className="text-13" color="text.secondary">
-                            No matching traffic source data yet.
-                          </Typography>
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-              <TablePagination
-                component="div"
-                count={filteredTrafficLandingRows.length}
-                page={trafficPage}
-                rowsPerPage={rowsPerPage}
-                rowsPerPageOptions={[10, 25, 50]}
-                onPageChange={(_, nextPage) => setTrafficPage(nextPage)}
-                onRowsPerPageChange={(event) => {
-                  setRowsPerPage(Number(event.target.value));
-                  setTrafficPage(0);
-                  setPage(0);
-                  setEventPage(0);
-                }}
-                sx={{ borderTop: '1px solid #27272a', color: 'text.secondary' }}
-              />
-            </Paper>
-
-            <Paper
-              className="overflow-hidden rounded-14"
-              elevation={0}
-              sx={{ backgroundColor: 'background.paper', border: '1px solid #27272a' }}
-            >
-              <Box className="border-b p-20" sx={{ borderColor: '#27272a' }}>
-                <Typography className="text-16 font-bold">Page paths and events</Typography>
-                <Typography className="mt-4 text-12" color="text.secondary">
-                  Shows page activity and the GA4 events reported on those pages.
-                </Typography>
-              </Box>
-
-              <TableContainer sx={{ maxHeight: 520 }}>
-                <Table stickyHeader aria-label="GA4 page path and event details">
-                  <TableHead>
-                    <TableRow>
-                      {['Page path', 'Page title', 'Event name', 'Event count', 'Users', 'Views', 'Engaged time'].map((heading) => (
-                        <TableCell
-                          key={heading}
-                          sx={{
-                            whiteSpace: 'nowrap',
-                            backgroundColor: '#18181c',
-                            borderColor: '#2b2b31',
-                            color: 'text.secondary',
-                            fontSize: 11,
-                            fontWeight: 700,
-                            letterSpacing: '.04em',
-                            textTransform: 'uppercase',
-                          }}
-                        >
-                          {heading}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {visiblePageEventRows.length ? (
-                      visiblePageEventRows.map((row, index) => (
-                        <TableRow
-                          hover
-                          key={`${row.pagePath}-${row.eventName}-${index}`}
-                          sx={{ '& td': { borderColor: '#27272a' } }}
-                        >
-                          <TableCell sx={{ minWidth: 240, maxWidth: 360 }}>
-                            <Tooltip title={readable(row.pagePath)} placement="top-start">
-                              <Typography className="truncate text-12 font-semibold">{readable(row.pagePath)}</Typography>
-                            </Tooltip>
-                          </TableCell>
-                          <TableCell sx={{ minWidth: 220, maxWidth: 340 }}>
-                            <Tooltip title={readable(row.pageTitle)} placement="top-start">
-                              <Typography className="truncate text-12">{readable(row.pageTitle)}</Typography>
-                            </Tooltip>
-                          </TableCell>
-                          <TableCell sx={{ minWidth: 150 }}>
-                            <Chip
-                              label={readable(row.eventName)}
-                              size="small"
-                              sx={{
-                                height: 23,
-                                backgroundColor: 'rgba(46, 158, 118, .14)',
-                                color: '#7ee6bb',
-                                fontSize: 11,
-                                fontWeight: 700,
-                              }}
-                            />
-                          </TableCell>
-                          <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                            <Typography className="text-13 font-bold">{formatNumber(row.eventCount)}</Typography>
-                          </TableCell>
-                          <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                            <Typography className="text-12">{formatNumber(row.activeUsers)}</Typography>
-                          </TableCell>
-                          <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                            <Typography className="text-12">{formatNumber(row.pageViews)}</Typography>
-                          </TableCell>
-                          <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                            <Typography className="text-12">{formatMinutes(row.engagementMinutes)}</Typography>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell align="center" colSpan={7} sx={{ borderColor: '#27272a', py: 44 }}>
-                          <Typography className="text-13" color="text.secondary">
-                            No matching page event data yet.
-                          </Typography>
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-              <TablePagination
-                component="div"
-                count={filteredPageEventRows.length}
-                page={eventPage}
-                rowsPerPage={rowsPerPage}
-                rowsPerPageOptions={[10, 25, 50]}
-                onPageChange={(_, nextPage) => setEventPage(nextPage)}
-                onRowsPerPageChange={(event) => {
-                  setRowsPerPage(Number(event.target.value));
-                  setEventPage(0);
-                  setTrafficPage(0);
                   setPage(0);
                 }}
                 sx={{ borderTop: '1px solid #27272a', color: 'text.secondary' }}

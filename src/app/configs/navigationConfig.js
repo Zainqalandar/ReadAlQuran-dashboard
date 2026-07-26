@@ -115,6 +115,29 @@ const navigationConfig = [
       },
     ],
   },
+  {
+    id: 'site-operations',
+    title: 'Site administration',
+    type: 'group',
+    children: [
+      {
+        id: 'site-operations',
+        title: 'Site operations',
+        subtitle: 'Readers and notifications',
+        icon: 'heroicons-outline:shield-check',
+        type: 'item',
+        url: '/operations',
+      },
+      {
+        id: 'users-feedback',
+        title: 'Users and feedback',
+        subtitle: 'Accounts and reader reports',
+        icon: 'heroicons-outline:users',
+        type: 'item',
+        url: '/operations/users',
+      },
+    ],
+  },
 ];
 
 export default navigationConfig;

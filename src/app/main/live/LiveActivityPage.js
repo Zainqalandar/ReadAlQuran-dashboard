@@ -20,7 +20,6 @@ import FusePageSimple from '@fuse/core/FusePageSimple';
 import FuseSvgIcon from '@fuse/core/FuseSvgIcon';
 import { useMemo } from 'react';
 import { getAnalyticsErrorMessage, useGetAnalyticsQuery } from '../analytics/analyticsApi';
-import { alhudaAdminUrl } from '../analytics/analyticsApiConfig';
 
 const EMPTY_ROWS = [];
 
@@ -384,8 +383,8 @@ function LiveActivityPage() {
               <Alert
                 severity="warning"
                 action={
-                  <Button color="inherit" href={alhudaAdminUrl} size="small" target="_blank">
-                    Open admin
+                  <Button color="inherit" onClick={refetch} size="small">
+                    Retry
                   </Button>
                 }
                 sx={{

@@ -9,6 +9,8 @@ import AudiencePage from '../main/audience/AudiencePage';
 import LiveActivityPage from '../main/live/LiveActivityPage';
 import TrafficQualityPage from '../main/traffic/TrafficQualityPage';
 import AnalyticsWorkspacePage from '../main/analytics/AnalyticsWorkspacePage';
+import SiteOperationsPage from '../main/admin/SiteOperationsPage';
+import UsersFeedbackPage from '../main/admin/UsersFeedbackPage';
 
 const routeConfigs = [SignInConfig];
 
@@ -81,6 +83,16 @@ const routes = [
   {
     path: '/analytics/traffic',
     element: <TrafficQualityPage />,
+    auth: settingsConfig.defaultAuth,
+  },
+  {
+    path: '/operations',
+    element: <SiteOperationsPage />,
+    auth: settingsConfig.defaultAuth,
+  },
+  {
+    path: '/operations/users',
+    element: <UsersFeedbackPage />,
     auth: settingsConfig.defaultAuth,
   },
   ...analyticsViews.map((view) => ({

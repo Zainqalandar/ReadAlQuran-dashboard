@@ -1,8 +1,8 @@
 # React Fuse Admin Starter
 
-This repository is a Fuse-derived React admin starter. It currently provides a local sign-in flow, a protected dashboard, a reusable Fuse component layer, theming, routing, Redux state, internationalization, and local/Docker development commands.
+This repository is the Read Al Quran operations and analytics dashboard. It provides a protected analytics workspace plus Al-Huda reader, feedback, and broadcast-notification operations.
 
-> Important: authentication is currently a browser-only demo implementation with credentials embedded in source code. It is not suitable for production. See [Security and technical debt](docs/SECURITY_AND_TECH_DEBT.md) before extending or deploying the app.
+Authentication is enforced by Al-Huda. The dashboard uses an Al-Huda-issued `HttpOnly` session cookie; it does not contain credentials, an admin token, or a database connection in its frontend bundle.
 
 ## Current stack
 
@@ -12,7 +12,7 @@ This repository is a Fuse-derived React admin starter. It currently provides a l
 - MUI 5, Emotion, Tailwind CSS 3, and Fuse UI components
 - React Hook Form and Yup
 - i18next with LTR/RTL support
-- Cookie-based demo authentication
+- Al-Huda server-issued, `HttpOnly` admin session authentication
 - Docker Compose development setup
 
 The manifest contains many additional editor, chart, date, and UI packages. A complete inventory, including packages that are declared but not currently detected in application code, is in [Dependencies](docs/DEPENDENCIES.md).
@@ -21,9 +21,11 @@ The manifest contains many additional editor, chart, date, and UI packages. A co
 
 | Route        | Access      | Purpose                    |
 | ------------ | ----------- | -------------------------- |
-| `/sign-in`   | Guests only | Local starter sign-in form |
+| `/sign-in`   | Guests only | Al-Huda admin sign-in |
 | `/`          | Admin       | Redirects to `/dashboard`  |
-| `/dashboard` | Admin       | Starter dashboard          |
+| `/dashboard` | Admin       | Google Analytics overview  |
+| `/operations` | Admin     | Reader totals and broadcast notifications |
+| `/operations/users` | Admin | Users, Quran state, and feedback management |
 | `/loading`   | Public      | Fuse loading screen        |
 | `/404`       | Public      | Not-found page             |
 | `*`          | Public      | Redirects to `/404`        |
@@ -38,6 +40,8 @@ npm start
 ```
 
 Open `http://localhost:3000`. Ask the project owner for development credentials; do not copy credentials into documentation, issues, or chat.
+
+For local development, `.env.development` uses `/alhuda`, which the dev server securely proxies to the live Al-Huda origin. For a deployed dashboard, `.env` uses the public Al-Huda URL. In Al-Huda, set `ANALYTICS_DASHBOARD_ORIGINS` to this dashboard origin and `ANALYTICS_DASHBOARD_URL` to the deployed dashboard URL.
 
 Build and preview the production bundle:
 
@@ -76,5 +80,5 @@ The following checks were run on 2026-07-21:
 
 ## Project status in one sentence
 
-This is a working frontend starter and component foundation, not yet a production-ready admin product: real API authentication, tests, dependency cleanup, security upgrades, and feature modules still need to be implemented.
+This is an active operations dashboard with server-enforced Al-Huda admin access. Dependency modernization, browser-level test coverage, and lint configuration remain planned hardening work.
 # ReadAlQuran-dashboard

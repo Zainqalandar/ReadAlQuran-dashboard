@@ -12,6 +12,5 @@ function normalizeOrigin(origin) {
 }
 
 export const analyticsApiBase =
-  normalizeOrigin(process.env.REACT_APP_ALHUDA_API_BASE) || LIVE_ALHUDA_ORIGIN;
-
-export const alhudaAdminUrl = `${analyticsApiBase}/admin`;
+  normalizeOrigin(process.env.REACT_APP_ALHUDA_API_BASE) ||
+  (process.env.NODE_ENV === 'development' ? '/alhuda' : LIVE_ALHUDA_ORIGIN);

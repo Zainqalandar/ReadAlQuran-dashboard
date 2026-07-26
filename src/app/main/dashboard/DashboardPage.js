@@ -17,7 +17,6 @@ import {
   useAnalyticsDateRange,
 } from '../analytics/AnalyticsDateRange';
 import { getAnalyticsErrorMessage, useGetAnalyticsQuery } from '../analytics/analyticsApi';
-import { alhudaAdminUrl } from '../analytics/analyticsApiConfig';
 
 function formatNumber(value) {
   return new Intl.NumberFormat('en-US').format(Math.round(Number(value || 0)));
@@ -242,13 +241,8 @@ function DashboardPage() {
               <Alert
                 severity="warning"
                 action={
-                  <Button
-                    color="inherit"
-                    href={alhudaAdminUrl}
-                    size="small"
-                    target="_blank"
-                  >
-                    Open admin
+                  <Button color="inherit" onClick={refetch} size="small">
+                    Retry
                   </Button>
                 }
                 sx={{

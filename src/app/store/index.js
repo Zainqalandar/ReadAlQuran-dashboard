@@ -1,5 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { analyticsApi } from '../main/analytics/analyticsApi';
+import { adminApi } from '../main/admin/adminApi';
 import createReducer from './rootReducer';
 
 if (process.env.NODE_ENV === 'development' && module.hot) {
@@ -23,7 +24,7 @@ const store = configureStore({
       getDefaultMiddleware({
         immutableCheck: false,
         serializableCheck: false,
-      }).concat(analyticsApi.middleware, middlewares),
+      }).concat(analyticsApi.middleware, adminApi.middleware, middlewares),
   devTools: process.env.NODE_ENV === 'development',
 });
 

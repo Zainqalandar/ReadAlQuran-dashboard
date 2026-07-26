@@ -1,43 +1,72 @@
-import Cookies from 'js-cookie';
 import FuseUtils from '@fuse/utils/FuseUtils';
+import { analyticsApiBase } from '../../../main/analytics/analyticsApiConfig';
 
-const ACCESS_TOKEN_COOKIE = 'access_token';
-const ACCESS_TOKEN = 'fuse-admin-starter-session';
-const STARTER_EMAIL = 'zainqalandar@gmail.com';
-const STARTER_PASSWORD = '068406';
+function authUrl(path) {
+  return `${analyticsApiBase}/api/auth/${path}`;
+}
 
-const starterUser = {
-  name: 'Zain Qalandar',
-  email: STARTER_EMAIL,
-  role: 'admin',
-  photo: '/Zainqalandar-img.jpeg',
-};
+function toDashboardUser(user) {
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: 'admin',
+    photo: user.imageUrl || '',
+  };
+}
+
+async function readResponse(response) {
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(payload.message || 'Unable to complete this request.');
+  }
+  return payload;
+}
 
 class JwtService extends FuseUtils.EventEmitter {
   init() {
-    const user = this.getCurrentUserData();
-
-    if (user) {
-      this.emit('onAutoLogin', user);
-      return;
-    }
-
-    this.emit('onNoAccessToken');
+    this.getCurrentUserData()
+      .then((user) => this.emit(user ? 'onAutoLogin' : 'onNoAccessToken', user))
+      .catch(() => this.emit('onNoAccessToken'));
   }
 
-  signInWithCredentials = ({ email, password, remember }) => {
-    if (email !== STARTER_EMAIL || password !== STARTER_PASSWORD) {
-      return Promise.reject(new Error('Incorrect email or password.'));
+  signInWithCredentials = async ({ email, password }) => {
+    const request = {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ email, password }),
+    };
+    let response = await fetch(authUrl('dashboard/signin'), request);
+
+    // The production API may not have the dashboard endpoint until its next deployment.
+    if (response.status === 404) {
+      response = await fetch(authUrl('signin'), request);
     }
 
-    Cookies.set(ACCESS_TOKEN_COOKIE, ACCESS_TOKEN, remember ? { expires: 30 } : undefined);
-    this.emit('onLogin', starterUser);
+    await readResponse(response);
+    const sessionResponse = await fetch(authUrl('session'), {
+      credentials: 'include',
+      headers: { Accept: 'application/json' },
+    });
+    const session = await readResponse(sessionResponse);
+    if (!session.user?.isAdmin) {
+      await fetch(authUrl('signout'), { method: 'POST', credentials: 'include' });
+      throw new Error('This Al-Huda account does not have dashboard access.');
+    }
 
-    return Promise.resolve(starterUser);
+    const user = toDashboardUser(session.user);
+    this.emit('onLogin', user);
+    return user;
   };
 
-  getCurrentUserData = () => {
-    return this.getAccessToken() === ACCESS_TOKEN ? starterUser : null;
+  getCurrentUserData = async () => {
+    const response = await fetch(authUrl('session'), {
+      credentials: 'include',
+      headers: { Accept: 'application/json' },
+    });
+    const payload = await readResponse(response);
+    return payload.user?.isAdmin ? toDashboardUser(payload.user) : null;
   };
 
   updateUserData = (user) => {
@@ -45,14 +74,13 @@ class JwtService extends FuseUtils.EventEmitter {
     return Promise.resolve(user);
   };
 
-  logout = () => {
-    this.removeAccessToken();
-    this.emit('onLogout');
+  logout = async () => {
+    try {
+      await fetch(authUrl('signout'), { method: 'POST', credentials: 'include' });
+    } finally {
+      this.emit('onLogout');
+    }
   };
-
-  getAccessToken = () => Cookies.get(ACCESS_TOKEN_COOKIE);
-
-  removeAccessToken = () => Cookies.remove(ACCESS_TOKEN_COOKIE);
 }
 
 const instance = new JwtService();

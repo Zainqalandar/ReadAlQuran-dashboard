@@ -4,29 +4,19 @@ Snapshot date: 2026-07-21. Security advisory results change over time; re-run th
 
 ## Release recommendation
 
-Do not deploy this repository as a production admin application in its current form. The frontend build works, but the authentication flow is intentionally local/demo-only, known dependency vulnerabilities exist, and no automated tests protect the authorization behavior.
+The demo authentication has been replaced with Al-Huda server-enforced admin sessions. Known dependency vulnerabilities and missing browser-level authorization tests still need attention before a production release.
 
-## Priority 0: replace demo authentication
+## Completed: replace demo authentication
 
-The current `jwtService` contains development credentials and a fixed token value in browser-delivered source. It writes that value into a JavaScript-readable cookie and treats possession of the value as authentication.
+The dashboard now signs in through Al-Huda's dashboard-only endpoint. Al-Huda validates the password and admin role, then returns a server-issued `HttpOnly` session cookie. All analytics, users, feedback, and broadcast actions remain authorized by Al-Huda.
 
-Consequences:
+The dashboard sends cross-origin requests only to origins configured through `ANALYTICS_DASHBOARD_ORIGINS`; mutation endpoints also enforce trusted origins. Client-side route checks are still UX only, while Al-Huda performs every data authorization check.
 
-- Anyone receiving the frontend bundle can inspect the credential check.
-- The cookie is not a server-issued proof of identity.
-- There is no refresh, expiry validation, revocation, CSRF strategy, or backend authorization.
-- Client-side role checks can always be bypassed by a user controlling their browser.
+Remaining work:
 
-Required remediation:
-
-1. Remove hard-coded credentials and the fixed starter token from tracked source and history where appropriate.
-2. Define a backend authentication contract.
-3. Prefer a server-set `HttpOnly`, `Secure`, appropriately scoped `SameSite` session cookie, or use a carefully designed OAuth/OIDC flow.
-4. Enforce every permission on the backend; frontend role checks are UX only.
-5. Add login, logout, expiry, refresh/session renewal, 401, 403, and role tests.
-6. Rotate any credential if it has ever been reused outside this local starter.
-
-The credentials are intentionally not reproduced in these docs.
+1. Add browser tests for sign-in, sign-out, expiry, 401, 403, and role enforcement.
+2. Add a session renewal or re-authentication policy when the seven-day Al-Huda session expires.
+3. Rotate any old demo credential if it was ever reused outside this repository.
 
 ## Priority 0/1: dependency advisories
 

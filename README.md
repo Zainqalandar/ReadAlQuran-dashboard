@@ -2,7 +2,7 @@
 
 This repository is the Read Al Quran operations and analytics dashboard. It provides a protected analytics workspace plus Al-Huda reader, feedback, and broadcast-notification operations.
 
-Authentication is enforced by Al-Huda. The dashboard uses an Al-Huda-issued `HttpOnly` session cookie; it does not contain credentials, an admin token, or a database connection in its frontend bundle.
+Authentication is owned by the dashboard. The dashboard issues its own `HttpOnly` session cookie, then its server-side proxy calls Al-Huda admin APIs with a shared service token. The browser never receives the Al-Huda token and no longer depends on being signed in to the public Al-Huda website.
 
 ## Current stack
 
@@ -12,7 +12,8 @@ Authentication is enforced by Al-Huda. The dashboard uses an Al-Huda-issued `Htt
 - MUI 5, Emotion, Tailwind CSS 3, and Fuse UI components
 - React Hook Form and Yup
 - i18next with LTR/RTL support
-- Al-Huda server-issued, `HttpOnly` admin session authentication
+- Dashboard server-issued, `HttpOnly` admin session authentication
+- Server-side Al-Huda admin API proxy
 - Docker Compose development setup
 
 The manifest contains many additional editor, chart, date, and UI packages. A complete inventory, including packages that are declared but not currently detected in application code, is in [Dependencies](docs/DEPENDENCIES.md).
@@ -21,7 +22,7 @@ The manifest contains many additional editor, chart, date, and UI packages. A co
 
 | Route        | Access      | Purpose                    |
 | ------------ | ----------- | -------------------------- |
-| `/sign-in`   | Guests only | Al-Huda admin sign-in |
+| `/sign-in`   | Guests only | Dashboard admin sign-in |
 | `/`          | Admin       | Redirects to `/dashboard`  |
 | `/dashboard` | Admin       | Google Analytics overview  |
 | `/operations` | Admin     | Reader totals and broadcast notifications |
@@ -41,7 +42,19 @@ npm start
 
 Open `http://localhost:3000`. Ask the project owner for development credentials; do not copy credentials into documentation, issues, or chat.
 
-For local development, `.env.development` uses `/alhuda`, which the dev server securely proxies to the live Al-Huda origin. For a deployed dashboard, `.env` uses the public Al-Huda URL. In Al-Huda, set `ANALYTICS_DASHBOARD_ORIGINS` to this dashboard origin and `ANALYTICS_DASHBOARD_URL` to the deployed dashboard URL.
+For local development, `src/setupProxy.js` serves `/api/auth/*` and securely proxies `/api/alhuda/*` to the live Al-Huda origin. For production on Vercel, root `api/*` serverless functions provide the same auth and proxy flow.
+
+Required dashboard environment variables:
+
+| Variable | Purpose |
+| --- | --- |
+| `DASHBOARD_ADMIN_EMAIL` | Email allowed to sign in to the dashboard |
+| `DASHBOARD_ADMIN_PASSWORD_SHA256` | SHA-256 hash of the dashboard password |
+| `DASHBOARD_SESSION_SECRET` | Long random HMAC secret for dashboard session cookies |
+| `ALHUDA_API_ORIGIN` | Al-Huda backend origin, for example `https://www.readalquran.online` |
+| `ALHUDA_DASHBOARD_API_TOKEN` | Shared server-side token also configured in Al-Huda |
+
+In Al-Huda, set the same `ALHUDA_DASHBOARD_API_TOKEN`. `ANALYTICS_DASHBOARD_URL` should point legacy `/admin` paths to the deployed dashboard.
 
 Build and preview the production bundle:
 
@@ -80,5 +93,5 @@ The following checks were run on 2026-07-21:
 
 ## Project status in one sentence
 
-This is an active operations dashboard with server-enforced Al-Huda admin access. Dependency modernization, browser-level test coverage, and lint configuration remain planned hardening work.
+This is an active operations dashboard with dashboard-owned authentication and server-side Al-Huda admin API access. Dependency modernization, browser-level test coverage, and lint configuration remain planned hardening work.
 # ReadAlQuran-dashboard

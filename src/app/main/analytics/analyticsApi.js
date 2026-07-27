@@ -1,10 +1,10 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { analyticsApiBase } from './analyticsApiConfig';
+import { adminApiBase } from './analyticsApiConfig';
 
 export const analyticsApi = createApi({
   reducerPath: 'analyticsApi',
   baseQuery: fetchBaseQuery({
-    baseUrl: `${analyticsApiBase}/api/admin/`,
+    baseUrl: adminApiBase,
     credentials: 'include',
     prepareHeaders: (headers) => {
       headers.set('Accept', 'application/json');

@@ -1,8 +1,7 @@
 import FuseUtils from '@fuse/utils/FuseUtils';
-import { analyticsApiBase } from '../../../main/analytics/analyticsApiConfig';
 
 function authUrl(path) {
-  return `${analyticsApiBase}/api/auth/${path}`;
+  return `/api/auth/${path}`;
 }
 
 function toDashboardUser(user) {
@@ -37,22 +36,15 @@ class JwtService extends FuseUtils.EventEmitter {
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify({ email, password }),
     };
-    let response = await fetch(authUrl('dashboard/signin'), request);
-
-    // The production API may not have the dashboard endpoint until its next deployment.
-    if (response.status === 404) {
-      response = await fetch(authUrl('signin'), request);
-    }
-
+    const response = await fetch(authUrl('signin'), request);
     await readResponse(response);
     const sessionResponse = await fetch(authUrl('session'), {
       credentials: 'include',
       headers: { Accept: 'application/json' },
     });
     const session = await readResponse(sessionResponse);
-    if (!session.user?.isAdmin) {
-      await fetch(authUrl('signout'), { method: 'POST', credentials: 'include' });
-      throw new Error('This Al-Huda account does not have dashboard access.');
+    if (!session.user) {
+      throw new Error('Dashboard session could not be created.');
     }
 
     const user = toDashboardUser(session.user);
@@ -66,7 +58,7 @@ class JwtService extends FuseUtils.EventEmitter {
       headers: { Accept: 'application/json' },
     });
     const payload = await readResponse(response);
-    return payload.user?.isAdmin ? toDashboardUser(payload.user) : null;
+    return payload.user ? toDashboardUser(payload.user) : null;
   };
 
   updateUserData = (user) => {

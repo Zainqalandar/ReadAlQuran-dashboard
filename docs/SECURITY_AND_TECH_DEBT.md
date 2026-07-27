@@ -4,18 +4,18 @@ Snapshot date: 2026-07-21. Security advisory results change over time; re-run th
 
 ## Release recommendation
 
-The demo authentication has been replaced with Al-Huda server-enforced admin sessions. Known dependency vulnerabilities and missing browser-level authorization tests still need attention before a production release.
+The demo authentication has been replaced with dashboard-owned server sessions and a server-side Al-Huda API proxy. Known dependency vulnerabilities and missing browser-level authorization tests still need attention before a production release.
 
 ## Completed: replace demo authentication
 
-The dashboard now signs in through Al-Huda's dashboard-only endpoint. Al-Huda validates the password and admin role, then returns a server-issued `HttpOnly` session cookie. All analytics, users, feedback, and broadcast actions remain authorized by Al-Huda.
+The dashboard now signs in through its own `/api/auth/signin` endpoint. It validates dashboard credentials from server-only environment variables, then returns a dashboard-issued `HttpOnly` session cookie. Analytics, users, feedback, and broadcast actions are forwarded through `/api/alhuda/*`, where the server injects a shared Al-Huda service token.
 
-The dashboard sends cross-origin requests only to origins configured through `ANALYTICS_DASHBOARD_ORIGINS`; mutation endpoints also enforce trusted origins. Client-side route checks are still UX only, while Al-Huda performs every data authorization check.
+The browser sends same-origin requests only. Al-Huda does not receive dashboard credentials or browser cookies; it authorizes admin API calls by validating `ALHUDA_DASHBOARD_API_TOKEN`. Client-side route checks are still UX only, while dashboard and Al-Huda server checks enforce data access.
 
 Remaining work:
 
 1. Add browser tests for sign-in, sign-out, expiry, 401, 403, and role enforcement.
-2. Add a session renewal or re-authentication policy when the seven-day Al-Huda session expires.
+2. Add a session renewal or re-authentication policy when the seven-day dashboard session expires.
 3. Rotate any old demo credential if it was ever reused outside this repository.
 
 ## Priority 0/1: dependency advisories

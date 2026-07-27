@@ -3,7 +3,7 @@ const {
   getSessionUser,
   readJsonBody,
   sendJson,
-} = require('../../server/dashboardAuth');
+} = require('../server/dashboardAuth');
 
 const DEFAULT_ALHUDA_ORIGIN = 'https://www.readalquran.online';
 
@@ -11,25 +11,33 @@ function normalizeOrigin(origin) {
   return String(origin || '').trim().replace(/\/+$/, '');
 }
 
+function normalizeProxyPath(value) {
+  const path = String(value || '').trim().replace(/^\/+|\/+$/g, '');
+
+  if (!path || path.includes('..')) {
+    return '';
+  }
+
+  return path
+    .split('/')
+    .filter(Boolean)
+    .map(encodeURIComponent)
+    .join('/');
+}
+
 function buildTargetUrl(req) {
   const origin = normalizeOrigin(process.env.ALHUDA_API_ORIGIN) || DEFAULT_ALHUDA_ORIGIN;
-  const path = Array.isArray(req.query.path)
-    ? req.query.path
-    : [req.query.path].filter(Boolean);
-  const url = new URL(`/api/admin/${path.map(encodeURIComponent).join('/')}`, origin);
+  const requestUrl = new URL(req.url, `https://${req.headers.host || 'dashboard.local'}`);
+  const path = normalizeProxyPath(requestUrl.searchParams.get('path'));
 
-  Object.entries(req.query).forEach(([key, value]) => {
-    if (key === 'path') {
-      return;
-    }
+  if (!path) {
+    return null;
+  }
 
-    if (Array.isArray(value)) {
-      value.forEach((item) => url.searchParams.append(key, item));
-      return;
-    }
-
-    if (value !== undefined) {
-      url.searchParams.set(key, value);
+  const url = new URL(`/api/admin/${path}`, origin);
+  requestUrl.searchParams.forEach((value, key) => {
+    if (key !== 'path') {
+      url.searchParams.append(key, value);
     }
   });
 
@@ -46,6 +54,11 @@ module.exports = async function alhudaProxy(req, res) {
     return sendJson(res, 500, { message: 'ALHUDA_DASHBOARD_API_TOKEN is not configured.' });
   }
 
+  const targetUrl = buildTargetUrl(req);
+  if (!targetUrl) {
+    return sendJson(res, 400, { message: 'A valid Al-Huda API path is required.' });
+  }
+
   try {
     const headers = {
       Accept: req.headers.accept || 'application/json',
@@ -59,11 +72,10 @@ module.exports = async function alhudaProxy(req, res) {
       headers['Content-Type'] = 'application/json';
     }
 
-    const upstream = await fetch(buildTargetUrl(req), {
+    const upstream = await fetch(targetUrl, {
       method: req.method,
       headers,
       body,
-      redirect: 'manual',
     });
     const contentType = upstream.headers.get('content-type') || 'application/json; charset=utf-8';
     const responseBody = Buffer.from(await upstream.arrayBuffer());

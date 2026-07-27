@@ -1,1 +1,1 @@
-export const adminApiBase = '/api/alhuda/';
+export const adminApiBase = '/api/';

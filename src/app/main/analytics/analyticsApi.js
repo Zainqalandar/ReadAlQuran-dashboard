@@ -16,8 +16,9 @@ export const analyticsApi = createApi({
     getAnalytics: builder.query({
       async queryFn({ dateRange = {}, view }, _queryApi, _extraOptions, baseQuery) {
         const result = await baseQuery({
-          url: 'analytics',
+          url: 'alhuda',
           params: {
+            path: 'analytics',
             ...dateRange,
             ...(view ? { view } : {}),
           },
@@ -31,8 +32,11 @@ export const analyticsApi = createApi({
 
         if (view === 'traffic' && !data?.pageEventDetails?.length) {
           const fallbackResult = await baseQuery({
-            url: 'analytics',
-            params: dateRange,
+            url: 'alhuda',
+            params: {
+              path: 'analytics',
+              ...dateRange,
+            },
           });
 
           if (fallbackResult.data?.pageEventDetails?.length) {

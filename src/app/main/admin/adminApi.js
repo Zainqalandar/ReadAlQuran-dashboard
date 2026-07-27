@@ -15,20 +15,25 @@ export const adminApi = createApi({
   keepUnusedDataFor: 300,
   endpoints: (builder) => ({
     getAdminUsers: builder.query({
-      query: () => 'users',
+      query: () => ({
+        url: 'alhuda',
+        params: { path: 'users' },
+      }),
       providesTags: ['AdminUsers'],
     }),
     deleteFeedback: builder.mutation({
       query: (id) => ({
-        url: `feedback/${encodeURIComponent(id)}`,
+        url: 'alhuda',
         method: 'DELETE',
+        params: { path: `feedback/${id}` },
       }),
       invalidatesTags: ['AdminUsers'],
     }),
     broadcastNotification: builder.mutation({
       query: (body) => ({
-        url: 'notifications/broadcast',
+        url: 'alhuda',
         method: 'POST',
+        params: { path: 'notifications/broadcast' },
         body,
       }),
     }),

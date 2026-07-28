@@ -11,7 +11,7 @@ export const adminApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ['AdminUsers'],
+  tagTypes: ['AdminUsers', 'GuestPushDevices'],
   keepUnusedDataFor: 300,
   endpoints: (builder) => ({
     getAdminUsers: builder.query({
@@ -29,6 +29,13 @@ export const adminApi = createApi({
       }),
       invalidatesTags: ['AdminUsers'],
     }),
+    getGuestPushDevices: builder.query({
+      query: () => ({
+        url: 'alhuda',
+        params: { path: 'notifications/guest-devices' },
+      }),
+      providesTags: ['GuestPushDevices'],
+    }),
     broadcastNotification: builder.mutation({
       query: (body) => ({
         url: 'alhuda',
@@ -36,6 +43,15 @@ export const adminApi = createApi({
         params: { path: 'notifications/broadcast' },
         body,
       }),
+    }),
+    broadcastGuestNotification: builder.mutation({
+      query: (body) => ({
+        url: 'alhuda',
+        method: 'POST',
+        params: { path: 'notifications/guest-broadcast' },
+        body,
+      }),
+      invalidatesTags: ['GuestPushDevices'],
     }),
   }),
 });
@@ -54,6 +70,8 @@ export function getAdminApiErrorMessage(error, fallbackMessage) {
 
 export const {
   useGetAdminUsersQuery,
+  useGetGuestPushDevicesQuery,
   useDeleteFeedbackMutation,
   useBroadcastNotificationMutation,
+  useBroadcastGuestNotificationMutation,
 } = adminApi;

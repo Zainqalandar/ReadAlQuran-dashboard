@@ -11,6 +11,7 @@ import TrafficQualityPage from '../main/traffic/TrafficQualityPage';
 import AnalyticsWorkspacePage from '../main/analytics/AnalyticsWorkspacePage';
 import SiteOperationsPage from '../main/admin/SiteOperationsPage';
 import UsersFeedbackPage from '../main/admin/UsersFeedbackPage';
+import GuestNotificationsPage from '../main/admin/GuestNotificationsPage';
 
 const routeConfigs = [SignInConfig];
 
@@ -93,6 +94,11 @@ const routes = [
   {
     path: '/operations/users',
     element: <UsersFeedbackPage />,
+    auth: settingsConfig.defaultAuth,
+  },
+  {
+    path: '/operations/guest-notifications',
+    element: <GuestNotificationsPage />,
     auth: settingsConfig.defaultAuth,
   },
   ...analyticsViews.map((view) => ({

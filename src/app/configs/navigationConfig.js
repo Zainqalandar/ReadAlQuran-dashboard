@@ -46,6 +46,14 @@ const navigationConfig = [
         type: 'item',
         url: '/operations/users',
       },
+      {
+        id: 'guest-notifications',
+        title: 'Guest notifications',
+        subtitle: 'Unauthenticated push devices',
+        icon: 'heroicons-outline:bell',
+        type: 'item',
+        url: '/operations/guest-notifications',
+      },
     ],
   },
   {

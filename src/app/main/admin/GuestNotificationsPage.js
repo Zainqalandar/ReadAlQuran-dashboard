@@ -24,15 +24,10 @@ import {
   getAdminApiErrorMessage,
   useGetGuestPushDevicesQuery,
 } from './adminApi';
+import { formatExactDateTime, formatRelativeTime } from './relativeTime';
 
 function formatNumber(value) {
   return new Intl.NumberFormat('en-US').format(Math.max(0, Number(value) || 0));
-}
-
-function formatDate(value) {
-  if (!value) return 'Never';
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? 'Unknown' : date.toLocaleString();
 }
 
 function getDeviceDetails(userAgent) {
@@ -231,9 +226,13 @@ function GuestNotificationsPage() {
                           </TableCell>
                           <TableCell>{details.browser}</TableCell>
                           <TableCell>{details.platform}</TableCell>
-                          <TableCell>{formatDate(device.createdAt)}</TableCell>
-                          <TableCell>{formatDate(device.lastSeenAt)}</TableCell>
-                          <TableCell>{formatDate(device.lastSentAt)}</TableCell>
+                          <TableCell>{formatExactDateTime(device.createdAt)}</TableCell>
+                          <TableCell title={formatExactDateTime(device.lastSeenAt)}>
+                            {formatRelativeTime(device.lastSeenAt)}
+                          </TableCell>
+                          <TableCell title={formatExactDateTime(device.lastSentAt)}>
+                            {formatRelativeTime(device.lastSentAt)}
+                          </TableCell>
                           <TableCell align="right">
                             <Chip
                               color={device.failureCount > 0 ? 'warning' : 'success'}

@@ -13,6 +13,7 @@ import {
   useGetAdminUsersQuery,
   useGetGuestPushDevicesQuery,
 } from './adminApi';
+import { formatRelativeTime } from './relativeTime';
 
 function formatNumber(value) {
   return new Intl.NumberFormat('en-US').format(Math.round(Number(value || 0)));
@@ -58,7 +59,7 @@ function getGuestDeviceSecondary(device) {
           : /Safari\//i.test(userAgent)
             ? 'Safari'
             : 'Unknown browser';
-  return `${browser} - Last seen: ${formatDate(device?.lastSeenAt)}`;
+  return `${browser} - Last seen: ${formatRelativeTime(device?.lastSeenAt)}`;
 }
 
 function Metric({ label, value, icon }) {
@@ -450,7 +451,31 @@ function SiteOperationsPage() {
                       }
                       label={isGuestAudience ? 'Browser push required for guest devices' : 'Also send push notifications'}
                     />
-                    <Button type="submit" variant="contained" startIcon={<SendIcon />} disabled={isSending}>
+                    <Button
+                      type="submit"
+                      variant="contained"
+                      color="primary"
+                      startIcon={<SendIcon />}
+                      disabled={isSending}
+                      sx={{
+                        minWidth: 176,
+                        fontWeight: 800,
+                        backgroundColor: '#c9a227',
+                        color: '#09090b',
+                        border: '1px solid rgba(250, 250, 250, .1)',
+                        boxShadow: '0 10px 24px rgba(201, 162, 39, .18)',
+                        '&:hover': {
+                          backgroundColor: '#dbb84a',
+                          boxShadow: '0 12px 28px rgba(201, 162, 39, .25)',
+                        },
+                        '&.Mui-disabled': {
+                          backgroundColor: 'rgba(82, 82, 91, .72)',
+                          color: 'rgba(250, 250, 250, .72)',
+                          borderColor: 'rgba(161, 161, 170, .24)',
+                          boxShadow: 'none',
+                        },
+                      }}
+                    >
                       {isSending ? 'Sending...' : 'Send broadcast'}
                     </Button>
                   </Box>

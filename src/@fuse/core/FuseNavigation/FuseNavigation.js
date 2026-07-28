@@ -66,6 +66,7 @@ function FuseNavigation(props) {
     'onItemClick',
     'firstLevel',
     'selectedId',
+    'showItemTooltips',
   ]);
   if (props.navigation.length > 0) {
     return (

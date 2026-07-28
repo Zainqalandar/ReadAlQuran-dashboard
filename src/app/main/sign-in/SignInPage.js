@@ -30,6 +30,8 @@ const defaultValues = {
   remember: true,
 };
 
+const BRAND_LOGO = '/logos/logo1.png';
+
 function SignInPage() {
   const [signInError, setSignInError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -79,18 +81,18 @@ function SignInPage() {
 
         <Box className="relative px-48 py-44 xl:px-64 xl:py-56">
           <Box
-            className="flex h-48 w-48 items-center justify-center rounded-12"
+            component="img"
+            alt="ReadAlQuran"
+            className="h-48 w-48 rounded-12 object-cover"
+            src={BRAND_LOGO}
             sx={{
-              background: 'linear-gradient(145deg, #dbb84a, #a67c00)',
               boxShadow: '0 18px 34px -20px rgba(201, 162, 39, .8)',
-              color: '#09090b',
+              border: '1px solid rgba(201, 162, 39, .34)',
             }}
-          >
-            <FuseSvgIcon size={26}>heroicons-outline:book-open</FuseSvgIcon>
-          </Box>
+          />
 
           <Typography className="mt-28 text-20 font-bold tracking-tight">
-            Read Al Quran
+            ReadAlQuran
           </Typography>
           <Typography
             className="mt-4 text-11 font-semibold uppercase tracking-[0.22em]"
@@ -168,18 +170,17 @@ function SignInPage() {
         >
           <Box className="flex items-center gap-12 lg:hidden">
             <Box
-              aria-hidden="true"
-              className="rounded-10 flex h-40 w-40 items-center justify-center"
+              component="img"
+              alt="ReadAlQuran"
+              className="h-40 w-40 shrink-0 rounded-10 object-cover"
+              src={BRAND_LOGO}
               sx={{
-                background: 'linear-gradient(145deg, #dbb84a, #a67c00)',
-                color: '#09090b',
+                border: '1px solid rgba(201, 162, 39, .34)',
               }}
-            >
-              <FuseSvgIcon size={21}>heroicons-outline:book-open</FuseSvgIcon>
-            </Box>
+            />
             <Box>
               <Typography className="text-15 font-bold">
-                Read Al Quran
+                ReadAlQuran
               </Typography>
               <Typography
                 className="mt-2 text-10 font-semibold uppercase tracking-widest"
@@ -337,7 +338,7 @@ function SignInPage() {
               className="text-11 leading-relaxed"
               color="text.secondary"
             >
-              This area is for the Read Al Quran team. Your session is protected
+              This area is for the ReadAlQuran team. Your session is protected
               and private.
             </Typography>
           </Box>

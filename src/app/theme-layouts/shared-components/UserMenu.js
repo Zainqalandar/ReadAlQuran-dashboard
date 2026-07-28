@@ -11,8 +11,11 @@ import FuseSvgIcon from '@fuse/core/FuseSvgIcon';
 import { selectUser } from 'app/store/userSlice';
 import JwtService from '../../auth/services/jwtService';
 
+const DEFAULT_ADMIN_AVATAR = '/logos/logo1.png';
+
 function UserMenu({ variant = 'toolbar', collapsed = false }) {
   const user = useSelector(selectUser);
+  const avatarSrc = user.photo || DEFAULT_ADMIN_AVATAR;
 
   const [userMenu, setUserMenu] = useState(null);
 
@@ -54,21 +57,15 @@ function UserMenu({ variant = 'toolbar', collapsed = false }) {
           </div>
         )}
 
-        {user.photo ? (
-          <Avatar
-            className={
-              variant === 'sidebar'
-                ? 'h-40 w-40 shrink-0 border-2 border-solid border-[#c9a227]/70'
-                : 'h-40 w-40 border-2 border-solid border-[#c9a227]/70 md:mx-4'
-            }
-            alt={user.name}
-            src={user.photo}
-          />
-        ) : (
-          <Avatar className={variant === 'sidebar' ? 'h-40 w-40 shrink-0' : 'h-40 w-40 md:mx-4'}>
-            {user.name.charAt(0)}
-          </Avatar>
-        )}
+        <Avatar
+          className={
+            variant === 'sidebar'
+              ? 'h-40 w-40 shrink-0 border-2 border-solid border-[#c9a227]/70'
+              : 'h-40 w-40 border-2 border-solid border-[#c9a227]/70 md:mx-4'
+          }
+          alt={user.name}
+          src={avatarSrc}
+        />
 
         {variant === 'sidebar' && !collapsed && (
           <div className="ml-10 min-w-0 flex-1 text-left">

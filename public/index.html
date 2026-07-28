@@ -2,10 +2,10 @@
 <html lang='en'>
 <head>
   <meta charset='utf-8'>
-  <meta name='description' content='Reusable React admin starter built with Fuse'>
+  <meta name='description' content='ReadAlQuran analytics and operations dashboard'>
   <meta name='keywords'
-        content='React,Redux,Material UI,Material Design,Admin Starter'>
-  <meta name='author' content='Withinpixels'>
+        content='ReadAlQuran,analytics,operations,dashboard'>
+  <meta name='author' content='ReadAlQuran'>
   <meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no'>
   <meta name='theme-color' content='#000000'>
   <base href='/'>
@@ -17,7 +17,8 @@
     homescreen on Android. See https://developers.google.com/web/fundamentals/engage-and-retain/web-app-manifest/
   -->
   <link rel='manifest' href='%PUBLIC_URL%/manifest.json'>
-  <link rel='shortcut icon' href='%PUBLIC_URL%/favicon.ico'>
+  <link rel='icon' type='image/png' sizes='48x48' href='%PUBLIC_URL%/logos/favicon-48.png'>
+  <link rel='apple-touch-icon' sizes='180x180' href='%PUBLIC_URL%/logos/apple-touch-icon.png'>
 
   <!--<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">-->
 
@@ -36,11 +37,11 @@
     It will be replaced with the URL of the `public` folder during the build.
     Only files inside the `public` folder can be referenced from the HTML.
 
-    Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
+    Unlike root-relative public assets, "%PUBLIC_URL%" paths will
     work correctly both with client-side routing and a non-root public URL.
     Learn how to configure a non-root public URL by running `npm run build`.
   -->
-  <title>Admin Starter</title>
+  <title>ReadAlQuran</title>
 
   <!-- FUSE Splash Screen CSS -->
   <style>
@@ -64,8 +65,20 @@
     }
 
     body #fuse-splash-screen img {
-      width: 120px;
-      max-width: 120px;
+      width: 84px;
+      height: 84px;
+      max-width: 84px;
+      border-radius: 20px;
+      box-shadow: 0 20px 42px -26px rgba(201, 162, 39, .75);
+    }
+
+    body #fuse-splash-screen .logo {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+      font-weight: 700;
+      letter-spacing: .02em;
     }
 
     #spinner {
@@ -130,7 +143,8 @@
   <!-- FUSE Splash Screen -->
   <div id='fuse-splash-screen'>
     <div class='logo'>
-      Loading Admin Starter...
+      <img src='%PUBLIC_URL%/logos/logo1.png' alt='ReadAlQuran'>
+      <span>Loading ReadAlQuran...</span>
     </div>
     <div id='spinner'>
       <div class='bounce1'></div>

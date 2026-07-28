@@ -1,4 +1,4 @@
-import { Alert, Button, Checkbox, FormControlLabel, LinearProgress, MenuItem, Paper, TextField, Typography } from '@mui/material';
+import { Alert, Button, Checkbox, FormControlLabel, IconButton, LinearProgress, MenuItem, Paper, TextField, Tooltip, Typography } from '@mui/material';
 import Box from '@mui/material/Box';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import SendIcon from '@mui/icons-material/Send';
@@ -53,7 +53,7 @@ function SiteOperationsPage() {
 
   const summary = data?.summary || { totalUsers: 0, totalSessionSeconds: 0, totalAudioSeconds: 0 };
   const feedbackCount = Array.isArray(data?.feedback) ? data.feedback.length : 0;
-  const pageError = getAdminApiErrorMessage(error, 'Unable to load Al-Huda operations.');
+  const pageError = getAdminApiErrorMessage(error, 'Unable to load ReadAlQuran operations.');
   const sendError = getAdminApiErrorMessage(broadcastError, 'Unable to send the notification.');
 
   const updateForm = (field) => (event) => {
@@ -85,12 +85,38 @@ function SiteOperationsPage() {
             <Box>
               <Typography className="text-3xl font-extrabold leading-tight">Site operations</Typography>
               <Typography className="mt-8 text-14" color="text.secondary">
-                Al-Huda readers, feedback, and notification delivery.
+                ReadAlQuran readers, feedback, and notification delivery.
               </Typography>
             </Box>
-            <Button startIcon={<RefreshIcon />} variant="outlined" disabled={isFetching} onClick={refetch}>
-              Refresh
-            </Button>
+            <Tooltip title={isFetching ? 'Refreshing operations' : 'Refresh operations data'}>
+              <span>
+                <IconButton
+                  aria-label="Refresh operations data"
+                  className="h-36 w-36 border border-solid"
+                  disabled={isFetching}
+                  onClick={refetch}
+                  size="small"
+                  sx={{
+                    borderColor: 'rgba(201, 162, 39, .38)',
+                    color: 'primary.light',
+                    backgroundColor: 'rgba(201, 162, 39, .08)',
+                    '&:hover': {
+                      backgroundColor: 'rgba(201, 162, 39, .16)',
+                      borderColor: 'rgba(201, 162, 39, .58)',
+                    },
+                    '&.Mui-disabled': {
+                      borderColor: 'rgba(201, 162, 39, .2)',
+                      color: 'rgba(201, 162, 39, .45)',
+                    },
+                  }}
+                >
+                  <RefreshIcon
+                    className={isFetching ? 'animate-spin' : ''}
+                    sx={{ fontSize: 18 }}
+                  />
+                </IconButton>
+              </span>
+            </Tooltip>
           </Box>
         </div>
       }

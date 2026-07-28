@@ -164,7 +164,7 @@ function authenticateCredentials({ email, password }) {
 
   return {
     id: 'dashboard-admin',
-    name: 'Read Al Quran Admin',
+    name: 'ReadAlQuran Admin',
     email: adminEmail,
     role: 'admin',
     photo: '',
@@ -227,12 +227,12 @@ async function proxyAlhudaAdminRequest(req, res) {
 
   const token = getDashboardApiToken();
   if (!token) {
-    return sendJson(res, 500, { message: 'ALHUDA_DASHBOARD_API_TOKEN is not configured.' });
+    return sendJson(res, 500, { message: 'ReadAlQuran dashboard API token is not configured.' });
   }
 
   const targetUrl = buildAlhudaAdminUrl(req);
   if (!targetUrl) {
-    return sendJson(res, 400, { message: 'A valid Al-Huda API path is required.' });
+    return sendJson(res, 400, { message: 'A valid ReadAlQuran API path is required.' });
   }
 
   try {
@@ -261,7 +261,7 @@ async function proxyAlhudaAdminRequest(req, res) {
     res.setHeader('Cache-Control', 'no-store');
     res.end(responseBody);
   } catch {
-    sendJson(res, 502, { message: 'Unable to reach Al-Huda API right now.' });
+    sendJson(res, 502, { message: 'Unable to reach ReadAlQuran API right now.' });
   }
 }
 

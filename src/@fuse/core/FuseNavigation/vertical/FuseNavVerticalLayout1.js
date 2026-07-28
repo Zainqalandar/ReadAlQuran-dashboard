@@ -37,7 +37,7 @@ const StyledList = styled(List)(({ theme }) => ({
 }));
 
 function FuseNavVerticalLayout1(props) {
-  const { navigation, layout, active, dense, className, onItemClick } = props;
+  const { navigation, layout, active, dense, className, onItemClick, showItemTooltips } = props;
   const dispatch = useDispatch();
 
   function handleItemClick(item) {
@@ -60,6 +60,7 @@ function FuseNavVerticalLayout1(props) {
           item={_item}
           nestedLevel={0}
           onItemClick={handleItemClick}
+          showItemTooltips={showItemTooltips}
         />
       ))}
     </StyledList>

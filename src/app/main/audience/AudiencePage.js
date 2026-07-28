@@ -304,7 +304,7 @@ function AudiencePage() {
                   color: 'text.primary',
                 }}
               >
-                {error}. Make sure Al-Huda is running and you are signed in as an admin.
+                {error}. Make sure ReadAlQuran is running and you are signed in as an admin.
               </Alert>
             ) : null}
 

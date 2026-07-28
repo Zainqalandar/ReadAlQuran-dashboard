@@ -251,7 +251,7 @@ function DashboardPage() {
                   color: 'text.primary',
                 }}
               >
-                {error}. Make sure Al-Huda is running, you are signed in as admin, and GA4 credentials are available.
+                {error}. Make sure ReadAlQuran is running, you are signed in as admin, and GA4 credentials are available.
               </Alert>
             ) : null}
 

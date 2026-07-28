@@ -79,7 +79,11 @@ function AnalyticsSidebarContent({ collapsed = false, onToggleCollapse }) {
         </Box>
       </Box>
 
-      <Navigation className={collapsed ? 'analytics-navigation--collapsed pb-16' : 'pb-16'} layout="vertical" />
+      <Navigation
+        className={collapsed ? 'analytics-navigation--collapsed pb-16' : 'pb-16'}
+        layout="vertical"
+        showItemTooltips={collapsed}
+      />
     </div>
   );
 }

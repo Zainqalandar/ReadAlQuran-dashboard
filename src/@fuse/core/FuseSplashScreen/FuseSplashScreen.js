@@ -1,12 +1,14 @@
 import { memo } from 'react';
 import Box from '@mui/material/Box';
-import FuseSvgIcon from '@fuse/core/FuseSvgIcon';
+
+const BRAND_LOGO = '/logos/logo1.png';
 
 function FuseSplashScreen() {
   return (
     <div id="fuse-splash-screen">
       <div className="logo">
-        <FuseSvgIcon size={48}>heroicons-outline:view-grid</FuseSvgIcon>
+        <img src={BRAND_LOGO} alt="ReadAlQuran" />
+        <span>Loading ReadAlQuran...</span>
       </div>
       <Box
         id="spinner"

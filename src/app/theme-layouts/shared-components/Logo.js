@@ -1,28 +1,29 @@
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
-import FuseSvgIcon from '@fuse/core/FuseSvgIcon';
+
+const BRAND_LOGO = '/logos/logo1.png';
 
 function Logo({ collapsed = false }) {
   return (
     <Box
       className="flex items-center gap-12"
-      aria-label="Read Al Quran Analytics"
+      aria-label="ReadAlQuran Analytics"
     >
       <Box
+        component="img"
+        alt=""
         aria-hidden="true"
-        className="rounded-10 flex h-40 w-40 items-center justify-center"
+        className="h-40 w-40 shrink-0 rounded-10 object-cover"
+        src={BRAND_LOGO}
         sx={{
-          background: 'linear-gradient(145deg, #dbb84a, #a67c00)',
           boxShadow: '0 10px 24px -14px rgba(201, 162, 39, .75)',
-          color: '#09090b',
+          border: '1px solid rgba(201, 162, 39, .34)',
         }}
-      >
-        <FuseSvgIcon size={22}>heroicons-outline:book-open</FuseSvgIcon>
-      </Box>
+      />
       {!collapsed && (
         <Box className="min-w-0">
           <Typography className="truncate text-15 font-bold leading-tight">
-            Read Al Quran
+            ReadAlQuran
           </Typography>
           <Typography
             className="mt-2 text-10 font-semibold uppercase tracking-widest"

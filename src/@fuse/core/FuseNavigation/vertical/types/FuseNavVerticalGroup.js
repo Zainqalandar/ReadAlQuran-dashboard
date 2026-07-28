@@ -22,7 +22,7 @@ const Root = styled(ListItem)(({ theme, itempadding, ...props }) => ({
 }));
 
 function FuseNavVerticalGroup(props) {
-  const { item, nestedLevel, onItemClick } = props;
+  const { item, nestedLevel, onItemClick, showItemTooltips } = props;
 
   const itempadding = nestedLevel > 0 ? 38 + nestedLevel * 16 : 16;
   return useMemo(
@@ -76,13 +76,14 @@ function FuseNavVerticalGroup(props) {
                 item={_item}
                 nestedLevel={nestedLevel}
                 onItemClick={onItemClick}
+                showItemTooltips={showItemTooltips}
               />
             ))}
           </>
         )}
       </>
     ),
-    [item, itempadding, nestedLevel, onItemClick]
+    [item, itempadding, nestedLevel, onItemClick, showItemTooltips]
   );
 }
 

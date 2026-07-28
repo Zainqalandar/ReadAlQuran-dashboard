@@ -26,10 +26,11 @@ function Navigation(props) {
         layout={props.layout}
         dense={props.dense}
         active={props.active}
+        showItemTooltips={props.showItemTooltips}
         onItemClick={handleItemClick}
       />
     );
-  }, [dispatch, isMobile, navigation, props.active, props.className, props.dense, props.layout]);
+  }, [dispatch, isMobile, navigation, props.active, props.className, props.dense, props.layout, props.showItemTooltips]);
 }
 
 Navigation.defaultProps = {

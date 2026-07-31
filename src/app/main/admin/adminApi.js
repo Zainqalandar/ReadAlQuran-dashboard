@@ -11,7 +11,7 @@ export const adminApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ['AdminUsers', 'GuestPushDevices'],
+  tagTypes: ['AdminUsers', 'GuestPushDevices', 'NotificationDevices'],
   keepUnusedDataFor: 300,
   endpoints: (builder) => ({
     getAdminUsers: builder.query({
@@ -36,6 +36,13 @@ export const adminApi = createApi({
       }),
       providesTags: ['GuestPushDevices'],
     }),
+    getNotificationDevices: builder.query({
+      query: () => ({
+        url: 'alhuda',
+        params: { path: 'notifications/devices' },
+      }),
+      providesTags: ['NotificationDevices'],
+    }),
     broadcastNotification: builder.mutation({
       query: (body) => ({
         url: 'alhuda',
@@ -43,6 +50,7 @@ export const adminApi = createApi({
         params: { path: 'notifications/broadcast' },
         body,
       }),
+      invalidatesTags: ['NotificationDevices'],
     }),
     broadcastGuestNotification: builder.mutation({
       query: (body) => ({
@@ -51,7 +59,7 @@ export const adminApi = createApi({
         params: { path: 'notifications/guest-broadcast' },
         body,
       }),
-      invalidatesTags: ['GuestPushDevices'],
+      invalidatesTags: ['GuestPushDevices', 'NotificationDevices'],
     }),
   }),
 });
@@ -71,6 +79,7 @@ export function getAdminApiErrorMessage(error, fallbackMessage) {
 export const {
   useGetAdminUsersQuery,
   useGetGuestPushDevicesQuery,
+  useGetNotificationDevicesQuery,
   useDeleteFeedbackMutation,
   useBroadcastNotificationMutation,
   useBroadcastGuestNotificationMutation,

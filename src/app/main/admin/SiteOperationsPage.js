@@ -500,8 +500,8 @@ function SiteOperationsPage() {
                 <Button component={RouterLink} to="/operations/users" className="mt-20" variant="outlined" fullWidth>
                   Open users and feedback
                 </Button>
-                <Button component={RouterLink} to="/operations/guest-notifications" className="mt-12" variant="outlined" fullWidth>
-                  Open guest notification devices
+                <Button component={RouterLink} to="/operations/notification-devices" className="mt-12" variant="outlined" fullWidth>
+                  Open notification devices
                 </Button>
               </Paper>
             </Box>

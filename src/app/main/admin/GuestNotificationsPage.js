@@ -22,7 +22,7 @@ import FusePageSimple from '@fuse/core/FusePageSimple';
 import { useMemo, useState } from 'react';
 import {
   getAdminApiErrorMessage,
-  useGetGuestPushDevicesQuery,
+  useGetNotificationDevicesQuery,
 } from './adminApi';
 import { formatExactDateTime, formatRelativeTime } from './relativeTime';
 
@@ -51,13 +51,29 @@ function getDeviceDetails(userAgent) {
 }
 
 function getDeviceLabel(device) {
+  if (device?.ownerType === 'user') {
+    return device.userName || device.userEmail || 'Signed-in reader';
+  }
+
   const id = String(device?.id || device?.deviceId || '').replace(/-/g, '');
   return `Guest ${id.slice(0, 8).toUpperCase() || 'DEVICE'}`;
 }
 
-function GuestNotificationsPage() {
+function getDeviceSecondary(device) {
+  if (device?.ownerType === 'user') {
+    return device.userEmail || 'Signed-in reader';
+  }
+
+  return 'Anonymous browser profile';
+}
+
+function getDeviceTypeLabel(device) {
+  return device?.ownerType === 'user' ? 'Signed-in' : 'Guest';
+}
+
+function NotificationDevicesPage() {
   const { data, error, isFetching, isLoading, refetch } =
-    useGetGuestPushDevicesQuery();
+    useGetNotificationDevicesQuery();
   const [query, setQuery] = useState('');
   const devices = useMemo(
     () => (Array.isArray(data?.devices) ? data.devices : []),
@@ -71,8 +87,13 @@ function GuestNotificationsPage() {
       const details = getDeviceDetails(device.userAgent);
       return [
         getDeviceLabel(device),
+        getDeviceSecondary(device),
+        getDeviceTypeLabel(device),
         device.id,
         device.deviceId,
+        device.userId,
+        device.userName,
+        device.userEmail,
         device.userAgent,
         details.browser,
         details.platform,
@@ -83,12 +104,14 @@ function GuestNotificationsPage() {
   }, [devices, query]);
   const summary = data?.summary || {
     enabledDevices: devices.length,
+    signedInDevices: 0,
+    guestDevices: 0,
     reachedDevices: 0,
     devicesWithFailures: 0,
   };
   const pageError = getAdminApiErrorMessage(
     error,
-    'Unable to load guest notification devices.'
+    'Unable to load notification devices.'
   );
 
   return (
@@ -101,16 +124,16 @@ function GuestNotificationsPage() {
           <Box className="flex flex-wrap items-center justify-between gap-16">
             <Box>
               <Typography className="text-3xl font-extrabold leading-tight">
-                Guest notification devices
+                Notification devices
               </Typography>
               <Typography className="mt-8 text-14" color="text.secondary">
-                Anonymous browsers that currently have website push enabled.
+                Signed-in readers and anonymous browsers with website push enabled.
               </Typography>
             </Box>
             <Tooltip title={isFetching ? 'Refreshing devices' : 'Refresh devices'}>
               <span>
                 <IconButton
-                  aria-label="Refresh guest notification devices"
+                  aria-label="Refresh notification devices"
                   disabled={isFetching}
                   onClick={refetch}
                   size="small"
@@ -143,6 +166,14 @@ function GuestNotificationsPage() {
                 variant="outlined"
               />
               <Chip
+                label={`${formatNumber(summary.signedInDevices)} signed-in`}
+                variant="outlined"
+              />
+              <Chip
+                label={`${formatNumber(summary.guestDevices)} guest`}
+                variant="outlined"
+              />
+              <Chip
                 label={`${formatNumber(summary.reachedDevices)} reached before`}
                 variant="outlined"
               />
@@ -164,9 +195,9 @@ function GuestNotificationsPage() {
             >
               <Box className="flex flex-wrap items-center justify-between gap-16 border-b p-20">
                 <Box>
-                  <Typography className="text-16 font-bold">Enabled guest devices</Typography>
+                  <Typography className="text-16 font-bold">Enabled notification devices</Typography>
                   <Typography className="mt-4 text-12" color="text.secondary">
-                    Device labels are anonymous and identify one browser profile.
+                    Signed-in rows show the reader account; guest rows stay anonymous.
                   </Typography>
                 </Box>
                 <TextField
@@ -189,16 +220,17 @@ function GuestNotificationsPage() {
                 <Box className="px-20 py-40 text-center">
                   <Typography color="text.secondary">
                     {devices.length === 0
-                      ? 'No guest device has enabled notifications yet.'
+                      ? 'No signed-in or guest device has enabled notifications yet.'
                       : 'No device matches this search.'}
                   </Typography>
                 </Box>
               ) : (
                 <TableContainer sx={{ overflowX: 'auto' }}>
-                  <Table size="small" sx={{ minWidth: 980 }}>
+                  <Table size="small" sx={{ minWidth: 1080 }}>
                   <TableHead>
                     <TableRow>
-                      <TableCell>Device</TableCell>
+                      <TableCell>Owner</TableCell>
+                      <TableCell>Type</TableCell>
                       <TableCell>Browser</TableCell>
                       <TableCell>Platform</TableCell>
                       <TableCell>Enabled</TableCell>
@@ -219,10 +251,22 @@ function GuestNotificationsPage() {
                             <Typography
                               className="mt-2 max-w-[300px] truncate text-11"
                               color="text.secondary"
-                              title={device.userAgent || ''}
+                              title={
+                                device.ownerType === 'user'
+                                  ? device.userEmail || ''
+                                  : device.userAgent || ''
+                              }
                             >
-                              {device.userAgent || 'User agent unavailable'}
+                              {getDeviceSecondary(device)}
                             </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Chip
+                              color={device.ownerType === 'user' ? 'primary' : 'default'}
+                              label={getDeviceTypeLabel(device)}
+                              size="small"
+                              variant="outlined"
+                            />
                           </TableCell>
                           <TableCell>{details.browser}</TableCell>
                           <TableCell>{details.platform}</TableCell>
@@ -256,4 +300,4 @@ function GuestNotificationsPage() {
   );
 }
 
-export default GuestNotificationsPage;
+export default NotificationDevicesPage;

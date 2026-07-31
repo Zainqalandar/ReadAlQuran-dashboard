@@ -97,8 +97,18 @@ const routes = [
     auth: settingsConfig.defaultAuth,
   },
   {
-    path: '/operations/guest-notifications',
+    path: '/operations/notification-devices',
     element: <GuestNotificationsPage />,
+    auth: settingsConfig.defaultAuth,
+  },
+  {
+    path: '/operations/guest-notifications',
+    element: <Navigate to="/operations/notification-devices" replace />,
+    auth: settingsConfig.defaultAuth,
+  },
+  {
+    path: '/guest-notifications',
+    element: <Navigate to="/operations/notification-devices" replace />,
     auth: settingsConfig.defaultAuth,
   },
   ...analyticsViews.map((view) => ({

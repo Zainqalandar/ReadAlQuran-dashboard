@@ -17,6 +17,7 @@ import {
 } from '@mui/material';
 import Box from '@mui/material/Box';
 import DeleteIcon from '@mui/icons-material/DeleteOutline';
+import InstagramIcon from '@mui/icons-material/Instagram';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import StarRoundedIcon from '@mui/icons-material/StarRounded';
 import FusePageSimple from '@fuse/core/FusePageSimple';
@@ -91,6 +92,18 @@ function getFeedbackAvatar(item, sender) {
     item?.userImageUrl,
     getPersonAvatar(item),
   ]);
+}
+
+function isInstagramReader(user) {
+  const trafficSources = Array.isArray(user?.trafficSources)
+    ? user.trafficSources
+    : [];
+
+  return (
+    trafficSources.includes('instagram') ||
+    user?.acquisitionSource === 'instagram' ||
+    user?.lastLoginSource === 'instagram'
+  );
 }
 
 function getInitials(name, email) {
@@ -354,7 +367,9 @@ function UsersFeedbackPage() {
     () =>
       users.filter((user) => {
         if (!normalizedQuery) return true;
-        return `${getPersonName(user)} ${getPersonEmail(user)}`
+        return `${getPersonName(user)} ${getPersonEmail(user)} ${
+          isInstagramReader(user) ? 'instagram' : ''
+        }`
           .toLowerCase()
           .includes(normalizedQuery);
       }),
@@ -483,6 +498,7 @@ function UsersFeedbackPage() {
                       const readerName = getPersonName(user);
                       const readerEmail = getPersonEmail(user);
                       const readerAvatar = getPersonAvatar(user);
+                      const fromInstagram = isInstagramReader(user);
 
                       return (
                         <tr
@@ -505,9 +521,29 @@ function UsersFeedbackPage() {
                                 {getInitials(readerName, readerEmail)}
                               </Avatar>
                               <Box className="min-w-0">
-                                <Typography className="truncate text-13 font-semibold">
-                                  {readerName}
-                                </Typography>
+                                <Box className="flex min-w-0 items-center gap-6">
+                                  <Typography className="truncate text-13 font-semibold">
+                                    {readerName}
+                                  </Typography>
+                                  {fromInstagram ? (
+                                    <Tooltip title="Signed in from Instagram page">
+                                      <Box
+                                        aria-label="Instagram reader"
+                                        className="inline-flex h-20 w-20 shrink-0 items-center justify-center rounded-full"
+                                        component="span"
+                                        sx={{
+                                          background:
+                                            'linear-gradient(135deg, #f58529, #dd2a7b 48%, #8134af)',
+                                          boxShadow:
+                                            '0 0 0 1px rgba(255,255,255,.14) inset',
+                                          color: '#fff',
+                                        }}
+                                      >
+                                        <InstagramIcon sx={{ fontSize: 13 }} />
+                                      </Box>
+                                    </Tooltip>
+                                  ) : null}
+                                </Box>
                                 <Typography
                                   className="mt-2 truncate text-11"
                                   color="text.secondary"

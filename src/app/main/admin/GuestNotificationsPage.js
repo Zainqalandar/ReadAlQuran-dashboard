@@ -71,12 +71,58 @@ function getDeviceTypeLabel(device) {
   return device?.ownerType === 'user' ? 'Signed-in' : 'Guest';
 }
 
+function getLogicalDeviceKey(device) {
+  if (device?.ownerType !== 'user') {
+    return `guest:${device?.deviceId || device?.id || ''}`;
+  }
+
+  const details = getDeviceDetails(device.userAgent);
+  return `user:${device.userId}:${details.browser}:${details.platform}`;
+}
+
+function latestNullableIso(left, right) {
+  if (!left) return right;
+  if (!right) return left;
+  return String(left).localeCompare(String(right)) >= 0 ? left : right;
+}
+
+function dedupeDevices(items) {
+  const logicalDevices = new Map();
+
+  items.forEach((device) => {
+    const key = getLogicalDeviceKey(device);
+    const existing = logicalDevices.get(key);
+
+    if (!existing) {
+      logicalDevices.set(key, device);
+      return;
+    }
+
+    const latest =
+      String(device.lastSeenAt).localeCompare(String(existing.lastSeenAt)) >= 0
+        ? device
+        : existing;
+    logicalDevices.set(key, {
+      ...latest,
+      failureCount: Math.max(
+        Number(existing.failureCount) || 0,
+        Number(device.failureCount) || 0
+      ),
+      lastSentAt: latestNullableIso(existing.lastSentAt, device.lastSentAt),
+    });
+  });
+
+  return Array.from(logicalDevices.values()).sort((left, right) =>
+    String(right.lastSeenAt).localeCompare(String(left.lastSeenAt))
+  );
+}
+
 function NotificationDevicesPage() {
   const { data, error, isFetching, isLoading, refetch } =
     useGetNotificationDevicesQuery();
   const [query, setQuery] = useState('');
   const devices = useMemo(
-    () => (Array.isArray(data?.devices) ? data.devices : []),
+    () => dedupeDevices(Array.isArray(data?.devices) ? data.devices : []),
     [data?.devices]
   );
   const filteredDevices = useMemo(() => {
@@ -102,13 +148,27 @@ function NotificationDevicesPage() {
         .some((value) => String(value).toLowerCase().includes(search));
     });
   }, [devices, query]);
-  const summary = data?.summary || {
-    enabledDevices: devices.length,
-    signedInDevices: 0,
-    guestDevices: 0,
-    reachedDevices: 0,
-    devicesWithFailures: 0,
-  };
+  const summary = useMemo(
+    () =>
+      devices.reduce(
+        (result, device) => {
+          result.enabledDevices += 1;
+          result.signedInDevices += device.ownerType === 'user' ? 1 : 0;
+          result.guestDevices += device.ownerType === 'guest' ? 1 : 0;
+          result.reachedDevices += device.lastSentAt ? 1 : 0;
+          result.devicesWithFailures += device.failureCount > 0 ? 1 : 0;
+          return result;
+        },
+        {
+          enabledDevices: 0,
+          signedInDevices: 0,
+          guestDevices: 0,
+          reachedDevices: 0,
+          devicesWithFailures: 0,
+        }
+      ),
+    [devices]
+  );
   const pageError = getAdminApiErrorMessage(
     error,
     'Unable to load notification devices.'

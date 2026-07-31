@@ -11,7 +11,12 @@ export const adminApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ['AdminUsers', 'GuestPushDevices', 'NotificationDevices'],
+  tagTypes: [
+    'AdminUsers',
+    'GuestPushDevices',
+    'NotificationDevices',
+    'AdminActivity',
+  ],
   keepUnusedDataFor: 300,
   endpoints: (builder) => ({
     getAdminUsers: builder.query({
@@ -42,6 +47,13 @@ export const adminApi = createApi({
         params: { path: 'notifications/devices' },
       }),
       providesTags: ['NotificationDevices'],
+    }),
+    getAdminActivity: builder.query({
+      query: () => ({
+        url: 'alhuda',
+        params: { path: 'notifications/activity' },
+      }),
+      providesTags: ['AdminActivity'],
     }),
     broadcastNotification: builder.mutation({
       query: (body) => ({
@@ -80,6 +92,7 @@ export const {
   useGetAdminUsersQuery,
   useGetGuestPushDevicesQuery,
   useGetNotificationDevicesQuery,
+  useGetAdminActivityQuery,
   useDeleteFeedbackMutation,
   useBroadcastNotificationMutation,
   useBroadcastGuestNotificationMutation,

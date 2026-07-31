@@ -1,6 +1,7 @@
 import { memo, useState } from 'react';
 import FuseScrollbars from '@fuse/core/FuseScrollbars/FuseScrollbars';
 import AnalyticsSidebarContent from 'app/theme-layouts/shared-components/AnalyticsSidebarContent';
+import AdminNotificationBell from 'app/theme-layouts/shared-components/AdminNotificationBell';
 import UserMenu from 'app/theme-layouts/shared-components/UserMenu';
 import { styled } from '@mui/material/styles';
 import Hidden from '@mui/material/Hidden';
@@ -110,7 +111,14 @@ function LeftSideLayout() {
             onToggleCollapse={() => setCollapsed((value) => !value)}
           />
         </StyledContent>
-        <div className={collapsed ? 'shrink-0 px-10 pb-16 pt-10' : 'shrink-0 px-20 pb-20 pt-12'}>
+        <div
+          className={
+            collapsed
+              ? 'shrink-0 space-y-8 px-10 pb-16 pt-10'
+              : 'shrink-0 space-y-8 px-20 pb-20 pt-12'
+          }
+        >
+          <AdminNotificationBell collapsed={collapsed} />
           <UserMenu variant="sidebar" collapsed={collapsed} />
         </div>
       </StyledAside>

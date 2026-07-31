@@ -5,6 +5,7 @@ import clsx from 'clsx';
 import { memo } from 'react';
 import NavbarToggleButton from '../../shared-components/NavbarToggleButton';
 import AnalyticsSidebarContent from '../../shared-components/AnalyticsSidebarContent';
+import AdminNotificationBell from '../../shared-components/AdminNotificationBell';
 import UserMenu from '../../shared-components/UserMenu';
 
 const Root = styled('div')(({ theme }) => ({
@@ -59,7 +60,8 @@ function NavbarMobileLayout2(props) {
         <AnalyticsSidebarContent />
       </StyledContent>
 
-      <div className="shrink-0 px-20 pb-20 pt-12">
+      <div className="shrink-0 space-y-8 px-20 pb-20 pt-12">
+        <AdminNotificationBell />
         <UserMenu variant="sidebar" />
       </div>
     </Root>

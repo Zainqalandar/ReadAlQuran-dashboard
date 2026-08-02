@@ -111,6 +111,10 @@ function getLogicalDeviceKey(device) {
     return `guest:${device?.deviceId || device?.id || ''}`;
   }
 
+  if (device?.deviceId) {
+    return `user:${device.userId}:${device.deviceId}`;
+  }
+
   const details = getDeviceDetails(device.userAgent);
   return `user:${device.userId}:${details.browser}:${details.platform}`;
 }
@@ -129,8 +133,8 @@ function normalizeDevice(device) {
     timeZone: device.timeZone || 'UTC',
     notificationSentCount: safeCount(device.notificationSentCount),
     notificationVisitCount: safeCount(device.notificationVisitCount),
-    siteVisitCount: safeCount(device.siteVisitCount),
-    lastSiteVisitAt: device.lastSiteVisitAt || null,
+    totalVisitCount: safeCount(device.totalVisitCount),
+    lastTotalVisitAt: device.lastTotalVisitAt || null,
     failureCount: safeCount(device.failureCount),
   };
 }
@@ -170,10 +174,13 @@ function dedupeDevices(items) {
         existing.notificationSentCount + device.notificationSentCount,
       notificationVisitCount:
         existing.notificationVisitCount + device.notificationVisitCount,
-      siteVisitCount: existing.siteVisitCount + device.siteVisitCount,
-      lastSiteVisitAt: latestNullableIso(
-        existing.lastSiteVisitAt,
-        device.lastSiteVisitAt
+      totalVisitCount: Math.max(
+        existing.totalVisitCount,
+        device.totalVisitCount
+      ),
+      lastTotalVisitAt: latestNullableIso(
+        existing.lastTotalVisitAt,
+        device.lastTotalVisitAt
       ),
       lastNotificationVisitAt: latestNullableIso(
         existing.lastNotificationVisitAt,
@@ -282,7 +289,7 @@ function NotificationDevicesPage() {
   const [preferenceFilter, setPreferenceFilter] = useState('all');
   const [healthFilter, setHealthFilter] = useState('all');
   const [timeZoneFilter, setTimeZoneFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('siteVisits');
+  const [sortBy, setSortBy] = useState('totalVisits');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(25);
 
@@ -355,15 +362,15 @@ function NotificationDevicesPage() {
       if (sortBy === 'sent') {
         return right.notificationSentCount - left.notificationSentCount;
       }
-      if (sortBy === 'siteVisits') {
-        return right.siteVisitCount - left.siteVisitCount;
+      if (sortBy === 'totalVisits') {
+        return right.totalVisitCount - left.totalVisitCount;
       }
       if (sortBy === 'rate') {
         return getOpenRate(right) - getOpenRate(left);
       }
-      if (sortBy === 'lastSiteVisit') {
-        return String(right.lastSiteVisitAt || '').localeCompare(
-          String(left.lastSiteVisitAt || '')
+      if (sortBy === 'lastTotalVisit') {
+        return String(right.lastTotalVisitAt || '').localeCompare(
+          String(left.lastTotalVisitAt || '')
         );
       }
       if (sortBy === 'lastVisit') {
@@ -403,12 +410,12 @@ function NotificationDevicesPage() {
           result.enabledDevices += 1;
           result.notificationsSent += device.notificationSentCount;
           result.notificationVisits += device.notificationVisitCount;
-          result.siteVisits += device.siteVisitCount;
+          result.totalVisits += device.totalVisitCount;
           result.activeDevices += getActivityStatus(device) === 'active' ? 1 : 0;
           result.devicesWithFailures += device.failureCount > 0 ? 1 : 0;
-          result.lastSiteVisitAt = latestNullableIso(
-            result.lastSiteVisitAt,
-            device.lastSiteVisitAt
+          result.lastTotalVisitAt = latestNullableIso(
+            result.lastTotalVisitAt,
+            device.lastTotalVisitAt
           );
           result.lastNotificationVisitAt = latestNullableIso(
             result.lastNotificationVisitAt,
@@ -420,10 +427,10 @@ function NotificationDevicesPage() {
           enabledDevices: 0,
           notificationsSent: 0,
           notificationVisits: 0,
-          siteVisits: 0,
+          totalVisits: 0,
           activeDevices: 0,
           devicesWithFailures: 0,
-          lastSiteVisitAt: null,
+          lastTotalVisitAt: null,
           lastNotificationVisitAt: null,
         }
       ),
@@ -480,8 +487,8 @@ function NotificationDevicesPage() {
     },
     {
       label: 'Total visits',
-      value: formatNumber(summary.siteVisits),
-      detail: `Last: ${formatRelativeTime(summary.lastSiteVisitAt)}`,
+      value: formatNumber(summary.totalVisits),
+      detail: `Last: ${formatRelativeTime(summary.lastTotalVisitAt)}`,
       icon: <GroupsIcon sx={{ fontSize: 19 }} />,
       tone: 'green',
     },
@@ -715,8 +722,8 @@ function NotificationDevicesPage() {
                     value={sortBy}
                     onChange={(event) => setSortBy(event.target.value)}
                   >
-                    <MenuItem value="siteVisits">Most total visits</MenuItem>
-                    <MenuItem value="lastSiteVisit">Latest total visit</MenuItem>
+                    <MenuItem value="totalVisits">Most total visits</MenuItem>
+                    <MenuItem value="lastTotalVisit">Latest total visit</MenuItem>
                     <MenuItem value="visits">Most push visits</MenuItem>
                     <MenuItem value="sent">Most notifications</MenuItem>
                     <MenuItem value="rate">Highest open rate</MenuItem>
@@ -840,14 +847,14 @@ function NotificationDevicesPage() {
                               </TableCell>
                               <TableCell sx={{ minWidth: 135 }}>
                                 <Typography className="text-16 font-bold">
-                                  {formatNumber(device.siteVisitCount)}
+                                  {formatNumber(device.totalVisitCount)}
                                 </Typography>
                                 <Typography
                                   className="mt-3 text-10"
                                   color="text.secondary"
-                                  title={formatExactDateTime(device.lastSiteVisitAt)}
+                                  title={formatExactDateTime(device.lastTotalVisitAt)}
                                 >
-                                  Last {formatRelativeTime(device.lastSiteVisitAt)}
+                                  Last {formatRelativeTime(device.lastTotalVisitAt)}
                                 </Typography>
                               </TableCell>
                               <TableCell sx={{ minWidth: 125 }}>

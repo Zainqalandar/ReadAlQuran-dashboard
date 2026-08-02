@@ -129,6 +129,8 @@ function normalizeDevice(device) {
     timeZone: device.timeZone || 'UTC',
     notificationSentCount: safeCount(device.notificationSentCount),
     notificationVisitCount: safeCount(device.notificationVisitCount),
+    siteVisitCount: safeCount(device.siteVisitCount),
+    lastSiteVisitAt: device.lastSiteVisitAt || null,
     failureCount: safeCount(device.failureCount),
   };
 }
@@ -168,6 +170,11 @@ function dedupeDevices(items) {
         existing.notificationSentCount + device.notificationSentCount,
       notificationVisitCount:
         existing.notificationVisitCount + device.notificationVisitCount,
+      siteVisitCount: existing.siteVisitCount + device.siteVisitCount,
+      lastSiteVisitAt: latestNullableIso(
+        existing.lastSiteVisitAt,
+        device.lastSiteVisitAt
+      ),
       lastNotificationVisitAt: latestNullableIso(
         existing.lastNotificationVisitAt,
         device.lastNotificationVisitAt
@@ -275,7 +282,7 @@ function NotificationDevicesPage() {
   const [preferenceFilter, setPreferenceFilter] = useState('all');
   const [healthFilter, setHealthFilter] = useState('all');
   const [timeZoneFilter, setTimeZoneFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('visits');
+  const [sortBy, setSortBy] = useState('siteVisits');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(25);
 
@@ -348,8 +355,16 @@ function NotificationDevicesPage() {
       if (sortBy === 'sent') {
         return right.notificationSentCount - left.notificationSentCount;
       }
+      if (sortBy === 'siteVisits') {
+        return right.siteVisitCount - left.siteVisitCount;
+      }
       if (sortBy === 'rate') {
         return getOpenRate(right) - getOpenRate(left);
+      }
+      if (sortBy === 'lastSiteVisit') {
+        return String(right.lastSiteVisitAt || '').localeCompare(
+          String(left.lastSiteVisitAt || '')
+        );
       }
       if (sortBy === 'lastVisit') {
         return String(right.lastNotificationVisitAt || '').localeCompare(
@@ -388,9 +403,13 @@ function NotificationDevicesPage() {
           result.enabledDevices += 1;
           result.notificationsSent += device.notificationSentCount;
           result.notificationVisits += device.notificationVisitCount;
-          result.respondingDevices += device.notificationVisitCount > 0 ? 1 : 0;
+          result.siteVisits += device.siteVisitCount;
           result.activeDevices += getActivityStatus(device) === 'active' ? 1 : 0;
           result.devicesWithFailures += device.failureCount > 0 ? 1 : 0;
+          result.lastSiteVisitAt = latestNullableIso(
+            result.lastSiteVisitAt,
+            device.lastSiteVisitAt
+          );
           result.lastNotificationVisitAt = latestNullableIso(
             result.lastNotificationVisitAt,
             device.lastNotificationVisitAt
@@ -401,9 +420,10 @@ function NotificationDevicesPage() {
           enabledDevices: 0,
           notificationsSent: 0,
           notificationVisits: 0,
-          respondingDevices: 0,
+          siteVisits: 0,
           activeDevices: 0,
           devicesWithFailures: 0,
+          lastSiteVisitAt: null,
           lastNotificationVisitAt: null,
         }
       ),
@@ -459,6 +479,13 @@ function NotificationDevicesPage() {
       tone: 'gold',
     },
     {
+      label: 'Total visits',
+      value: formatNumber(summary.siteVisits),
+      detail: `Last: ${formatRelativeTime(summary.lastSiteVisitAt)}`,
+      icon: <GroupsIcon sx={{ fontSize: 19 }} />,
+      tone: 'green',
+    },
+    {
       label: 'Notifications sent',
       value: formatNumber(summary.notificationsSent),
       detail: 'Tracked deliveries from now onward',
@@ -478,13 +505,6 @@ function NotificationDevicesPage() {
       detail: 'Attributed visits / tracked sends',
       icon: <TrendingUpIcon sx={{ fontSize: 19 }} />,
       tone: 'green',
-    },
-    {
-      label: 'Responding devices',
-      value: formatNumber(summary.respondingDevices),
-      detail: 'Devices with at least one push visit',
-      icon: <GroupsIcon sx={{ fontSize: 19 }} />,
-      tone: 'blue',
     },
     {
       label: 'Delivery issues',
@@ -508,7 +528,7 @@ function NotificationDevicesPage() {
                 Notification devices
               </Typography>
               <Typography className="mt-8 text-14" color="text.secondary">
-                Delivery health, reader response, content preference, and push-attributed visits.
+                Delivery health, reader response, total visits, and push-attributed visits.
               </Typography>
             </Box>
             <Tooltip title={isFetching ? 'Refreshing devices' : 'Refresh devices'}>
@@ -695,6 +715,8 @@ function NotificationDevicesPage() {
                     value={sortBy}
                     onChange={(event) => setSortBy(event.target.value)}
                   >
+                    <MenuItem value="siteVisits">Most total visits</MenuItem>
+                    <MenuItem value="lastSiteVisit">Latest total visit</MenuItem>
                     <MenuItem value="visits">Most push visits</MenuItem>
                     <MenuItem value="sent">Most notifications</MenuItem>
                     <MenuItem value="rate">Highest open rate</MenuItem>
@@ -725,7 +747,7 @@ function NotificationDevicesPage() {
                       aria-label="Notification device engagement details"
                       size="small"
                       stickyHeader
-                      sx={{ minWidth: 1540 }}
+                      sx={{ minWidth: 1680 }}
                     >
                       <TableHead>
                         <TableRow>
@@ -735,6 +757,7 @@ function NotificationDevicesPage() {
                             'Browser',
                             'Profile',
                             'Activity',
+                            'Total visits',
                             'Delivered',
                             'Visits from push',
                             'Open rate',
@@ -813,6 +836,18 @@ function NotificationDevicesPage() {
                                   title={formatExactDateTime(device.lastSeenAt)}
                                 >
                                   {formatRelativeTime(device.lastSeenAt)}
+                                </Typography>
+                              </TableCell>
+                              <TableCell sx={{ minWidth: 135 }}>
+                                <Typography className="text-16 font-bold">
+                                  {formatNumber(device.siteVisitCount)}
+                                </Typography>
+                                <Typography
+                                  className="mt-3 text-10"
+                                  color="text.secondary"
+                                  title={formatExactDateTime(device.lastSiteVisitAt)}
+                                >
+                                  Last {formatRelativeTime(device.lastSiteVisitAt)}
                                 </Typography>
                               </TableCell>
                               <TableCell sx={{ minWidth: 125 }}>

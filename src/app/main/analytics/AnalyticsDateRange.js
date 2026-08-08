@@ -10,10 +10,18 @@ import {
 import Box from '@mui/material/Box';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import FilterAltOffIcon from '@mui/icons-material/FilterAltOff';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 
 const STORAGE_KEY = 'readalquran.analytics.date-range';
 const AnalyticsDateRangeContext = createContext(null);
+const DATE_RANGE_PRESET_LABELS = {
+  last7: 'Last 7 days',
+  last30: 'Last 30 days',
+  thisMonth: 'This month',
+  lastMonth: 'Last month',
+  custom: 'Custom dates',
+};
 
 export function toAnalyticsInputDate(date) {
   const timezoneOffset = date.getTimezoneOffset() * 60 * 1000;
@@ -172,26 +180,85 @@ export function AnalyticsDateRangeButton() {
   }
 
   const isOpen = Boolean(anchorElement);
+  const selectedPeriodLabel = DATE_RANGE_PRESET_LABELS[dateRangePreset] || 'Custom dates';
 
   return (
     <>
-      <Tooltip title={`Filter analytics data · ${formatAnalyticsDateRange(dateRange)}`}>
-        <IconButton
-          aria-label="Filter all analytics data by date"
+      <Tooltip
+        title={`Controls dates across all historical analytics reports · ${formatAnalyticsDateRange(
+          dateRange
+        )}`}
+      >
+        <Button
+          aria-label={`Global analytics date range: ${selectedPeriodLabel}`}
           onClick={openCalendar}
-          size="small"
           sx={{
             mr: 1,
-            height: 36,
-            width: 36,
+            minWidth: { xs: 40, sm: 166 },
+            height: 40,
+            p: '4px',
+            justifyContent: 'flex-start',
             border: '1px solid rgba(201, 162, 39, .38)',
-            color: 'primary.light',
-            backgroundColor: 'rgba(201, 162, 39, .08)',
-            '&:hover': { backgroundColor: 'rgba(201, 162, 39, .16)' },
+            borderRadius: '10px',
+            color: 'text.primary',
+            backgroundColor: '#1d1d22',
+            boxShadow: '0 3px 10px rgba(0, 0, 0, .18)',
+            textTransform: 'none',
+            '&:hover': {
+              borderColor: 'rgba(224, 189, 54, .68)',
+              backgroundColor: '#222228',
+              boxShadow: '0 4px 14px rgba(0, 0, 0, .24)',
+            },
           }}
         >
-          <CalendarMonthIcon sx={{ fontSize: 18 }} />
-        </IconButton>
+          <Box
+            aria-hidden="true"
+            className="flex shrink-0 items-center justify-center"
+            sx={{
+              width: 30,
+              height: 30,
+              borderRadius: '7px',
+              backgroundColor: 'rgba(201, 162, 39, .15)',
+              color: 'primary.light',
+            }}
+          >
+            <CalendarMonthIcon sx={{ fontSize: 18 }} />
+          </Box>
+          <Box
+            sx={{
+              display: { xs: 'none', sm: 'flex' },
+              minWidth: 0,
+              ml: 1.1,
+              flexDirection: 'column',
+              alignItems: 'flex-start',
+              lineHeight: 1,
+            }}
+          >
+            <Typography
+              component="span"
+              className="text-9 font-semibold uppercase tracking-wide"
+              color="text.secondary"
+            >
+              Date range
+            </Typography>
+            <Typography
+              component="span"
+              className="mt-3 max-w-[90px] truncate text-11 font-bold leading-none"
+              sx={{ color: 'primary.light' }}
+            >
+              {selectedPeriodLabel}
+            </Typography>
+          </Box>
+          <KeyboardArrowDownIcon
+            sx={{
+              display: { xs: 'none', sm: 'block' },
+              ml: 'auto',
+              mr: 0.25,
+              color: 'text.secondary',
+              fontSize: 18,
+            }}
+          />
+        </Button>
       </Tooltip>
       <Popover
         anchorEl={anchorElement}
@@ -213,7 +280,7 @@ export function AnalyticsDateRangeButton() {
         <Box className="p-20">
           <Typography className="text-16 font-bold">Filter all analytics data</Typography>
           <Typography className="mt-5 text-12" color="text.secondary">
-            This date range is shared across dashboard and audience reports.
+            This global date range controls every historical analytics report.
           </Typography>
           <TextField
             fullWidth

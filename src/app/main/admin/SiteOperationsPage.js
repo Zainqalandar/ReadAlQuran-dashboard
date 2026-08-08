@@ -13,6 +13,10 @@ import {
   useGetAdminUsersQuery,
   useGetGuestPushDevicesQuery,
 } from './adminApi';
+import {
+  getGuestDeviceLabel,
+  getNotificationDeviceDetails,
+} from './notificationDeviceUtils';
 import { formatRelativeTime } from './relativeTime';
 
 function formatNumber(value) {
@@ -41,25 +45,9 @@ function getReaderEmail(user) {
   return user?.email || user?.userEmail || 'No email';
 }
 
-function getGuestDeviceLabel(device) {
-  const id = String(device?.id || device?.deviceId || '').replace(/-/g, '');
-  return `Guest ${id.slice(0, 8).toUpperCase() || 'DEVICE'}`;
-}
-
 function getGuestDeviceSecondary(device) {
-  const userAgent = String(device?.userAgent || 'Unknown browser');
-  const browser = /Edg\//i.test(userAgent)
-    ? 'Microsoft Edge'
-    : /Firefox\//i.test(userAgent)
-      ? 'Firefox'
-      : /CriOS\//i.test(userAgent)
-        ? 'Chrome iOS'
-        : /Chrome\//i.test(userAgent)
-          ? 'Chrome'
-          : /Safari\//i.test(userAgent)
-            ? 'Safari'
-            : 'Unknown browser';
-  return `${browser} - Last seen: ${formatRelativeTime(device?.lastSeenAt)}`;
+  const details = getNotificationDeviceDetails(device?.userAgent);
+  return `${details.browser} - Last seen: ${formatRelativeTime(device?.lastSeenAt)}`;
 }
 
 function Metric({ label, value, icon }) {
@@ -88,7 +76,12 @@ function SiteOperationsPage() {
     isFetching: isFetchingGuests,
     isLoading: isLoadingGuests,
     refetch: refetchGuestDevices,
-  } = useGetGuestPushDevicesQuery();
+  } = useGetGuestPushDevicesQuery(undefined, {
+    pollingInterval: 60_000,
+    refetchOnFocus: true,
+    refetchOnReconnect: true,
+    refetchOnMountOrArgChange: true,
+  });
   const [
     broadcastNotification,
     { error: broadcastError, isLoading: isSendingReaders },
@@ -118,13 +111,22 @@ function SiteOperationsPage() {
     totalAudioSeconds: 0,
   };
   const readers = useMemo(() => (Array.isArray(data?.users) ? data.users : []), [data?.users]);
-  const guestDevices = useMemo(
+  const allGuestDevices = useMemo(
     () => (Array.isArray(guestData?.devices) ? guestData.devices : []),
     [guestData?.devices]
   );
+  const guestDevices = useMemo(
+    () => allGuestDevices.filter((device) => device?.enabled !== false),
+    [allGuestDevices]
+  );
+  const disabledGuestDeviceCount = allGuestDevices.length - guestDevices.length;
   const isGuestAudience = form.audience === 'guests';
+  const enabledGuestDeviceIds = useMemo(
+    () => new Set(guestDevices.map((device) => device.id).filter(Boolean)),
+    [guestDevices]
+  );
   const selectedRecipientIds = isGuestAudience
-    ? form.targetDeviceIds
+    ? form.targetDeviceIds.filter((id) => enabledGuestDeviceIds.has(id))
     : form.targetUserIds;
   const selectedRecipientCount = selectedRecipientIds.length;
   const availableRecipients = isGuestAudience ? guestDevices : readers;
@@ -235,11 +237,11 @@ function SiteOperationsPage() {
         const response = await broadcastGuestNotification({
           ...notificationPayload,
           ...(form.recipientMode === 'selected'
-            ? { targetDeviceIds: form.targetDeviceIds }
+            ? { targetDeviceIds: selectedRecipientIds }
             : {}),
         }).unwrap();
         const pushTargets = Math.max(0, Number(response?.pushTargets) || 0);
-        const pushSent = Math.max(0, Number(response?.push?.sent) || 0);
+        const pushAccepted = Math.max(0, Number(response?.push?.sent) || 0);
         const pushFailed = Math.max(0, Number(response?.push?.failed) || 0);
         const targetLabel =
           Array.isArray(response?.targetDeviceIds) &&
@@ -248,7 +250,7 @@ function SiteOperationsPage() {
             : 'guest devices';
 
         setResult(
-          `Push sent to ${formatNumber(pushSent)}/${formatNumber(pushTargets)} ${targetLabel}${pushFailed > 0 ? `, failed ${formatNumber(pushFailed)}` : ''}.`
+          `Provider accepted ${formatNumber(pushAccepted)}/${formatNumber(pushTargets)} for ${targetLabel}${pushFailed > 0 ? `, failed ${formatNumber(pushFailed)}` : ''}.`
         );
       } else {
         const response = await broadcastNotification({
@@ -261,7 +263,7 @@ function SiteOperationsPage() {
         const targetCount = Math.max(0, Number(response?.users) || 0);
         const inAppCreated = Math.max(0, Number(response?.inAppCreated) || 0);
         const pushTargets = Math.max(0, Number(response?.pushTargets) || 0);
-        const pushSent = Math.max(0, Number(response?.push?.sent) || 0);
+        const pushAccepted = Math.max(0, Number(response?.push?.sent) || 0);
         const pushFailed = Math.max(0, Number(response?.push?.failed) || 0);
         const targetLabel =
           Array.isArray(response?.targetUserIds) &&
@@ -269,7 +271,7 @@ function SiteOperationsPage() {
             ? 'selected readers'
             : 'readers';
         const pushSummary = form.push
-          ? ` Push sent ${formatNumber(pushSent)}/${formatNumber(pushTargets)}${pushFailed > 0 ? `, failed ${formatNumber(pushFailed)}` : ''}.`
+          ? ` Provider accepted ${formatNumber(pushAccepted)}/${formatNumber(pushTargets)}${pushFailed > 0 ? `, failed ${formatNumber(pushFailed)}` : ''}.`
           : '';
 
         setResult(
@@ -330,11 +332,13 @@ function SiteOperationsPage() {
             {error ? <Alert severity="warning">{pageError}</Alert> : null}
             {guestDevicesError ? <Alert severity="warning">{guestPageError}</Alert> : null}
 
-            <Box className="grid grid-cols-1 gap-16 sm:grid-cols-2 xl:grid-cols-4">
+            <Box className="grid grid-cols-1 gap-16 sm:grid-cols-2 xl:grid-cols-3">
               <Metric label="Registered readers" value={formatNumber(summary.totalUsers)} icon="heroicons-outline:users" />
               <Metric label="Feedback waiting" value={formatNumber(feedbackCount)} icon="heroicons-outline:chat-alt-2" />
               <Metric label="Reader time" value={formatDuration(summary.totalSessionSeconds)} icon="heroicons-outline:clock" />
               <Metric label="Audio time" value={formatDuration(summary.totalAudioSeconds)} icon="heroicons-outline:volume-up" />
+              <Metric label="Enabled guest devices" value={formatNumber(guestDevices.length)} icon="heroicons-outline:device-mobile" />
+              <Metric label="Disabled guest devices" value={formatNumber(disabledGuestDeviceCount)} icon="heroicons-outline:minus-circle" />
             </Box>
 
             <Box className="grid grid-cols-1 gap-20 xl:grid-cols-[minmax(0,1fr)_360px]">

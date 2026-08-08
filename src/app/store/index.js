@@ -1,4 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
+import { setupListeners } from '@reduxjs/toolkit/query';
 import { analyticsApi } from '../main/analytics/analyticsApi';
 import { adminApi } from '../main/admin/adminApi';
 import createReducer from './rootReducer';
@@ -29,6 +30,7 @@ const store = configureStore({
 });
 
 store.asyncReducers = {};
+setupListeners(store.dispatch);
 
 export const injectReducer = (key, reducer) => {
   if (store.asyncReducers[key]) {

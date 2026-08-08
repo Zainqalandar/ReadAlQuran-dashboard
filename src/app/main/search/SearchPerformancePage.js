@@ -58,6 +58,18 @@ function formatPosition(value) {
   return position ? position.toFixed(1) : "—";
 }
 
+function formatSearchConsoleDate(value) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value || "")) {
+    return "the latest available date";
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(`${value}T00:00:00`));
+}
+
 function MetricCard({ label, value, helper, icon }) {
   return (
     <Paper
@@ -223,6 +235,11 @@ function SearchPerformancePage() {
   const [query, setQuery] = useState("");
   const normalizedQuery = query.trim().toLowerCase();
   const overview = searchPerformance?.overview || {};
+  const dataFreshness = searchPerformance?.dataFreshness;
+  const isRecentDataProcessing = Boolean(dataFreshness?.isProcessing);
+  const latestCompleteDate = formatSearchConsoleDate(
+    dataFreshness?.latestCompleteDate
+  );
   const error = getAnalyticsErrorMessage(
     searchError,
     "Unable to load Search Console data."
@@ -256,6 +273,23 @@ function SearchPerformancePage() {
                     letterSpacing: ".04em",
                   }}
                 />
+                {isRecentDataProcessing ? (
+                  <Chip
+                    icon={<FuseSvgIcon size={14}>heroicons-outline:clock</FuseSvgIcon>}
+                    label="Recent data processing"
+                    size="small"
+                    sx={{
+                      height: 24,
+                      backgroundColor: "rgba(59, 130, 246, .10)",
+                      border: "1px solid rgba(59, 130, 246, .30)",
+                      color: "#93c5fd",
+                      fontSize: 10,
+                      fontWeight: 700,
+                      letterSpacing: ".04em",
+                      "& .MuiChip-icon": { color: "#93c5fd" },
+                    }}
+                  />
+                ) : null}
               </Box>
               <Typography className="mt-8 text-14" color="text.secondary">
                 Live Google Search Console data for{" "}
@@ -337,17 +371,46 @@ function SearchPerformancePage() {
               </Alert>
             ) : null}
 
+            {isRecentDataProcessing ? (
+              <Alert
+                severity="info"
+                sx={{
+                  backgroundColor: "rgba(59, 130, 246, .10)",
+                  border: "1px solid rgba(59, 130, 246, .28)",
+                  color: "text.primary",
+                  "& .MuiAlert-icon": { color: "#60a5fa" },
+                }}
+              >
+                <Typography className="text-13 font-bold">
+                  Recent Search Console data is still processing
+                </Typography>
+                <Typography className="mt-2 text-12 leading-relaxed">
+                  Complete data is currently available through {latestCompleteDate}. Your
+                  selected range includes newer dates, which Google normally finalizes in
+                  2–3 days. Until then, recent metrics or tables can temporarily show zero.
+                </Typography>
+              </Alert>
+            ) : null}
+
             <Box className="grid grid-cols-1 gap-16 sm:grid-cols-2 xl:grid-cols-4">
               <MetricCard
                 label="Clicks"
                 value={formatNumber(overview.clicks)}
-                helper="Google Search clicks in this date range."
+                helper={
+                  isRecentDataProcessing
+                    ? "Recent Google Search clicks are still being processed."
+                    : "Google Search clicks in this date range."
+                }
                 icon="heroicons-outline:cursor-click"
               />
               <MetricCard
                 label="Impressions"
                 value={formatNumber(overview.impressions)}
-                helper="Times your pages appeared in Google Search."
+                helper={
+                  isRecentDataProcessing
+                    ? "Recent impressions are still being processed."
+                    : "Times your pages appeared in Google Search."
+                }
                 icon="heroicons-outline:eye"
               />
               <MetricCard

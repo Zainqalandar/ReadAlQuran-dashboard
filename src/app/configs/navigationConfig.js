@@ -86,9 +86,9 @@ const navigationConfig = [
       },
       {
         id: 'search-performance',
-        title: 'Search performance',
-        subtitle: 'Queries and landing pages',
-        icon: 'heroicons-outline:search',
+        title: 'Google Search',
+        subtitle: 'How people find your website',
+        icon: 'feather:google',
         type: 'item',
         url: '/analytics/search',
       },

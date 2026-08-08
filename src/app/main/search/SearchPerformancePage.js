@@ -256,10 +256,10 @@ function SearchPerformancePage() {
             <Box>
               <Box className="flex flex-wrap items-center gap-10">
                 <Typography className="text-3xl font-extrabold leading-tight">
-                  Search performance
+                  Google Search performance
                 </Typography>
                 <Chip
-                  label={`Search Console · ${formatAnalyticsDateRange(
+                  label={`Google Search · ${formatAnalyticsDateRange(
                     searchPerformance?.dateRange || dateRange
                   )}`}
                   size="small"
@@ -292,8 +292,8 @@ function SearchPerformancePage() {
                 ) : null}
               </Box>
               <Typography className="mt-8 text-14" color="text.secondary">
-                Live Google Search Console data for{" "}
-                {searchPerformance?.siteUrl || "your configured property"}.
+                See how people find your website through Google Search, including
+                clicks, visibility, and the search terms bringing readers to you.
               </Typography>
             </Box>
             <Box className="flex items-center gap-10">
@@ -457,14 +457,14 @@ function SearchPerformancePage() {
             <Box className="grid grid-cols-1 gap-20 xl:grid-cols-2">
               <SearchReportTable
                 title="Top queries"
-                description="Search terms that brought readers to Read Al Quran."
+                description="The search terms people used on Google to find your website."
                 rows={searchPerformance?.topQueries || EMPTY_ROWS}
                 primaryKey="query"
                 query={normalizedQuery}
               />
               <SearchReportTable
                 title="Top pages"
-                description="Landing pages shown in Google Search results."
+                description="Your website pages that appeared in Google Search results."
                 rows={searchPerformance?.topPages || EMPTY_ROWS}
                 primaryKey="page"
                 query={normalizedQuery}

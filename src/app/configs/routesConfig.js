@@ -8,6 +8,7 @@ import DashboardPage from '../main/dashboard/DashboardPage';
 import AudiencePage from '../main/audience/AudiencePage';
 import LiveActivityPage from '../main/live/LiveActivityPage';
 import TrafficQualityPage from '../main/traffic/TrafficQualityPage';
+import SearchPerformancePage from '../main/search/SearchPerformancePage';
 import AnalyticsWorkspacePage from '../main/analytics/AnalyticsWorkspacePage';
 import SiteOperationsPage from '../main/admin/SiteOperationsPage';
 import UsersFeedbackPage from '../main/admin/UsersFeedbackPage';
@@ -16,13 +17,6 @@ import GuestNotificationsPage from '../main/admin/GuestNotificationsPage';
 const routeConfigs = [SignInConfig];
 
 const analyticsViews = [
-  {
-    path: '/analytics/search',
-    title: 'Search performance',
-    description:
-      'Understand search queries, landing pages and organic discovery.',
-    icon: 'heroicons-outline:search',
-  },
   {
     path: '/analytics/content',
     title: 'Content performance',
@@ -84,6 +78,11 @@ const routes = [
   {
     path: '/analytics/traffic',
     element: <TrafficQualityPage />,
+    auth: settingsConfig.defaultAuth,
+  },
+  {
+    path: '/analytics/search',
+    element: <SearchPerformancePage />,
     auth: settingsConfig.defaultAuth,
   },
   {

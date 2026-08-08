@@ -1,15 +1,13 @@
-import { Alert, Button, Checkbox, FormControlLabel, IconButton, LinearProgress, ListItemText, MenuItem, Paper, TextField, Tooltip, Typography } from '@mui/material';
+import { Alert, Button, Checkbox, FormControlLabel, IconButton, LinearProgress, ListItemText, MenuItem, Paper, Snackbar, TextField, Tooltip, Typography } from '@mui/material';
 import Box from '@mui/material/Box';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import SendIcon from '@mui/icons-material/Send';
 import FusePageSimple from '@fuse/core/FusePageSimple';
 import FuseSvgIcon from '@fuse/core/FuseSvgIcon';
 import { useMemo, useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import {
   getAdminApiErrorMessage,
-  useBroadcastGuestNotificationMutation,
-  useBroadcastNotificationMutation,
   useGetAdminUsersQuery,
   useGetGuestPushDevicesQuery,
 } from './adminApi';
@@ -82,14 +80,6 @@ function SiteOperationsPage() {
     refetchOnReconnect: true,
     refetchOnMountOrArgChange: true,
   });
-  const [
-    broadcastNotification,
-    { error: broadcastError, isLoading: isSendingReaders },
-  ] = useBroadcastNotificationMutation();
-  const [
-    broadcastGuestNotification,
-    { error: guestBroadcastError, isLoading: isSendingGuests },
-  ] = useBroadcastGuestNotificationMutation();
   const [form, setForm] = useState({
     title: '',
     message: '',
@@ -102,8 +92,7 @@ function SiteOperationsPage() {
     targetUserIds: [],
     targetDeviceIds: [],
   });
-  const [result, setResult] = useState('');
-  const [localError, setLocalError] = useState('');
+  const [permissionNoticeOpen, setPermissionNoticeOpen] = useState(false);
 
   const summary = data?.summary || {
     totalUsers: 0,
@@ -130,19 +119,11 @@ function SiteOperationsPage() {
     : form.targetUserIds;
   const selectedRecipientCount = selectedRecipientIds.length;
   const availableRecipients = isGuestAudience ? guestDevices : readers;
-  const isSending = isSendingReaders || isSendingGuests;
   const feedbackCount = Array.isArray(data?.feedback) ? data.feedback.length : 0;
   const pageError = getAdminApiErrorMessage(error, 'Unable to load ReadAlQuran operations.');
   const guestPageError = getAdminApiErrorMessage(
     guestDevicesError,
     'Unable to load guest notification devices.'
-  );
-  const activeBroadcastError = isGuestAudience
-    ? guestBroadcastError
-    : broadcastError;
-  const sendError = getAdminApiErrorMessage(
-    activeBroadcastError,
-    'Unable to send the notification.'
   );
 
   const updateForm = (field) => (event) => {
@@ -210,84 +191,14 @@ function SiteOperationsPage() {
     refetchGuestDevices();
   };
 
-  const sendBroadcast = async (event) => {
-    event.preventDefault();
-    setResult('');
-    setLocalError('');
-
-    if (form.recipientMode === 'selected' && selectedRecipientCount === 0) {
-      setLocalError(
-        isGuestAudience
-          ? 'Select at least one guest device before sending.'
-          : 'Select at least one logged-in reader before sending.'
-      );
-      return;
-    }
-
-    try {
-      const notificationPayload = {
-        title: form.title,
-        message: form.message,
-        href: form.href.trim() || '/',
-        type: form.type,
-        priority: form.priority,
-      };
-
-      if (isGuestAudience) {
-        const response = await broadcastGuestNotification({
-          ...notificationPayload,
-          ...(form.recipientMode === 'selected'
-            ? { targetDeviceIds: selectedRecipientIds }
-            : {}),
-        }).unwrap();
-        const pushTargets = Math.max(0, Number(response?.pushTargets) || 0);
-        const pushAccepted = Math.max(0, Number(response?.push?.sent) || 0);
-        const pushFailed = Math.max(0, Number(response?.push?.failed) || 0);
-        const targetLabel =
-          Array.isArray(response?.targetDeviceIds) &&
-          response.targetDeviceIds.length > 0
-            ? 'selected guest devices'
-            : 'guest devices';
-
-        setResult(
-          `Provider accepted ${formatNumber(pushAccepted)}/${formatNumber(pushTargets)} for ${targetLabel}${pushFailed > 0 ? `, failed ${formatNumber(pushFailed)}` : ''}.`
-        );
-      } else {
-        const response = await broadcastNotification({
-          ...notificationPayload,
-          push: form.push,
-          ...(form.recipientMode === 'selected'
-            ? { targetUserIds: form.targetUserIds }
-            : {}),
-        }).unwrap();
-        const targetCount = Math.max(0, Number(response?.users) || 0);
-        const inAppCreated = Math.max(0, Number(response?.inAppCreated) || 0);
-        const pushTargets = Math.max(0, Number(response?.pushTargets) || 0);
-        const pushAccepted = Math.max(0, Number(response?.push?.sent) || 0);
-        const pushFailed = Math.max(0, Number(response?.push?.failed) || 0);
-        const targetLabel =
-          Array.isArray(response?.targetUserIds) &&
-          response.targetUserIds.length > 0
-            ? 'selected readers'
-            : 'readers';
-        const pushSummary = form.push
-          ? ` Provider accepted ${formatNumber(pushAccepted)}/${formatNumber(pushTargets)}${pushFailed > 0 ? `, failed ${formatNumber(pushFailed)}` : ''}.`
-          : '';
-
-        setResult(
-          `Delivered in-app to ${formatNumber(inAppCreated)}/${formatNumber(targetCount)} ${targetLabel}.${pushSummary}`
-        );
-      }
-
-      setForm((current) => ({ ...current, title: '', message: '' }));
-    } catch {
-      // The API error is rendered next to the form.
-    }
+  const showBroadcastPermissionNotice = () => {
+    setPermissionNoticeOpen(true);
   };
 
   return (
-    <FusePageSimple
-      header={
+    <>
+      <FusePageSimple
+        header={
         <div className="flex w-full flex-col justify-center border-b px-24 py-24 sm:px-40" style={{ borderColor: '#27272a' }}>
           <Box className="flex flex-wrap items-center justify-between gap-16">
             <Box>
@@ -354,12 +265,12 @@ function SiteOperationsPage() {
                   <Box>
                     <Typography className="text-16 font-bold">Broadcast notification</Typography>
                     <Typography className="mt-6 text-12" color="text.secondary">
-                      Send to logged-in readers or enabled guest notification devices.
+                      Broadcast sending is restricted for this shared dashboard.
                     </Typography>
                   </Box>
                 </Box>
 
-                <Box component="form" className="mt-20 grid grid-cols-1 gap-16" onSubmit={sendBroadcast}>
+                <Box component="section" className="mt-20 grid grid-cols-1 gap-16">
                   <TextField label="Title" value={form.title} onChange={updateForm('title')} inputProps={{ maxLength: 120 }} required fullWidth />
                   <TextField label="Message" value={form.message} onChange={updateForm('message')} inputProps={{ maxLength: 420 }} minRows={3} multiline required fullWidth />
                   <Box className="grid grid-cols-1 gap-16 lg:grid-cols-[200px_220px_minmax(0,1fr)]">
@@ -456,36 +367,26 @@ function SiteOperationsPage() {
                       label={isGuestAudience ? 'Browser push required for guest devices' : 'Also send push notifications'}
                     />
                     <Button
-                      type="submit"
-                      variant="contained"
-                      color="primary"
-                      startIcon={<SendIcon />}
-                      disabled={isSending}
+                      aria-disabled="true"
+                      onClick={showBroadcastPermissionNotice}
+                      startIcon={<LockOutlinedIcon />}
                       sx={{
                         minWidth: 176,
                         fontWeight: 800,
-                        backgroundColor: '#c9a227',
-                        color: '#09090b',
-                        border: '1px solid rgba(250, 250, 250, .1)',
-                        boxShadow: '0 10px 24px rgba(201, 162, 39, .18)',
+                        cursor: 'not-allowed',
+                        backgroundColor: 'rgba(82, 82, 91, .72)',
+                        color: 'rgba(250, 250, 250, .72)',
+                        border: '1px solid rgba(161, 161, 170, .24)',
+                        boxShadow: 'none',
                         '&:hover': {
-                          backgroundColor: '#dbb84a',
-                          boxShadow: '0 12px 28px rgba(201, 162, 39, .25)',
-                        },
-                        '&.Mui-disabled': {
-                          backgroundColor: 'rgba(82, 82, 91, .72)',
-                          color: 'rgba(250, 250, 250, .72)',
-                          borderColor: 'rgba(161, 161, 170, .24)',
+                          backgroundColor: 'rgba(82, 82, 91, .9)',
                           boxShadow: 'none',
                         },
                       }}
                     >
-                      {isSending ? 'Sending...' : 'Send broadcast'}
+                      Send broadcast
                     </Button>
                   </Box>
-                  {localError ? <Alert severity="error">{localError}</Alert> : null}
-                  {activeBroadcastError ? <Alert severity="error">{sendError}</Alert> : null}
-                  {result ? <Alert severity="success">{result}</Alert> : null}
                 </Box>
               </Paper>
 
@@ -511,8 +412,24 @@ function SiteOperationsPage() {
             </Box>
           </Box>
         </Box>
-      }
-    />
+        }
+      />
+      <Snackbar
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        autoHideDuration={6000}
+        onClose={() => setPermissionNoticeOpen(false)}
+        open={permissionNoticeOpen}
+      >
+        <Alert
+          onClose={() => setPermissionNoticeOpen(false)}
+          severity="warning"
+          sx={{ alignItems: 'center', maxWidth: 520 }}
+          variant="filled"
+        >
+          Permission required. Sending broadcast notifications is restricted for this shared dashboard. Please contact the dashboard owner.
+        </Alert>
+      </Snackbar>
+    </>
   );
 }
 

@@ -220,6 +220,13 @@ function buildAlhudaAdminUrl(req) {
   return url;
 }
 
+function isBroadcastRequest(targetUrl) {
+  return [
+    '/api/admin/notifications/broadcast',
+    '/api/admin/notifications/guest-broadcast',
+  ].includes(targetUrl.pathname);
+}
+
 async function proxyAlhudaAdminRequest(req, res) {
   if (!getSessionUser(req)) {
     return sendJson(res, 401, { message: 'Dashboard session is required.' });
@@ -233,6 +240,13 @@ async function proxyAlhudaAdminRequest(req, res) {
   const targetUrl = buildAlhudaAdminUrl(req);
   if (!targetUrl) {
     return sendJson(res, 400, { message: 'A valid ReadAlQuran API path is required.' });
+  }
+
+  if (isBroadcastRequest(targetUrl)) {
+    return sendJson(res, 403, {
+      message:
+        'You do not have permission to send broadcast notifications from this dashboard.',
+    });
   }
 
   try {

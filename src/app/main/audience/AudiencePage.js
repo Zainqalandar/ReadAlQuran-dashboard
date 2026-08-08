@@ -227,10 +227,10 @@ function AudiencePage() {
             <Box>
               <Box className="flex flex-wrap items-center gap-10">
                 <Typography className="text-3xl font-extrabold leading-tight">
-                  Visitor details
+                  Visitor insights
                 </Typography>
                 <Chip
-                  label={`GA4 · ${formatAnalyticsDateRange(dateRange)}`}
+                  label={`Google Analytics · ${formatAnalyticsDateRange(dateRange)}`}
                   size="small"
                   sx={{
                     height: 24,
@@ -244,7 +244,7 @@ function AudiencePage() {
                 />
               </Box>
               <Typography className="mt-8 text-14" color="text.secondary">
-                Privacy-safe audience groups by device, browser, location and activity.
+                Understand who visits your website, where they are, and which devices they use.
               </Typography>
             </Box>
             <Box className="flex items-center gap-10">
@@ -285,7 +285,7 @@ function AudiencePage() {
                 elevation={0}
                 sx={{ backgroundColor: 'background.paper', border: '1px solid #27272a' }}
               >
-                <Typography className="text-14 font-semibold">Loading visitor technology data</Typography>
+                <Typography className="text-14 font-semibold">Loading visitor insights</Typography>
                 <LinearProgress className="mt-16" color="primary" />
               </Paper>
             ) : null}
@@ -304,14 +304,14 @@ function AudiencePage() {
                   color: 'text.primary',
                 }}
               >
-                {error}. Make sure ReadAlQuran is running and you are signed in as an admin.
+                {error}. Please retry, or contact support if the problem continues.
               </Alert>
             ) : null}
 
             <Box className="grid grid-cols-1 gap-14 sm:grid-cols-3">
-              <SummaryCard label="Audience groups" value={formatNumber(rows.length)} icon="heroicons-outline:collection" />
-              <SummaryCard label="Mobile audience" value={formatNumber(mobileUsers)} icon="heroicons-outline:device-mobile" />
-              <SummaryCard label="Desktop audience" value={formatNumber(desktopUsers)} icon="heroicons-outline:desktop-computer" />
+              <SummaryCard label="Visitor groups" value={formatNumber(rows.length)} icon="heroicons-outline:collection" />
+              <SummaryCard label="Mobile visitors" value={formatNumber(mobileUsers)} icon="heroicons-outline:device-mobile" />
+              <SummaryCard label="Desktop visitors" value={formatNumber(desktopUsers)} icon="heroicons-outline:desktop-computer" />
             </Box>
 
             <Paper
@@ -321,15 +321,15 @@ function AudiencePage() {
             >
               <Box className="flex flex-col gap-14 border-b p-20 lg:flex-row lg:items-center lg:justify-between" sx={{ borderColor: '#27272a' }}>
                 <Box>
-                  <Typography className="text-16 font-bold">Audience technology table</Typography>
+                  <Typography className="text-16 font-bold">Visitor details</Typography>
                   <Typography className="mt-4 text-12" color="text.secondary">
-                    Each row is an anonymous GA4 audience group, never a named individual or IP address.
+                    Anonymous visitor groups summarized by device, browser, location, and activity.
                   </Typography>
                 </Box>
                 <Box className="flex flex-col gap-10 sm:flex-row">
                   <TextField
                     aria-label="Search visitor details"
-                    placeholder="Search source, page, event, browser…"
+                    placeholder="Search pages, devices, locations…"
                     size="small"
                     value={search}
                     onChange={(event) => setSearch(event.target.value)}
@@ -381,7 +381,7 @@ function AudiencePage() {
               </Box>
 
               <TableContainer sx={{ maxHeight: 640 }}>
-                <Table stickyHeader aria-label="GA4 visitor technology details">
+                <Table stickyHeader aria-label="Visitor details">
                   <TableHead>
                     <TableRow>
                       {['Device', 'Operating system', 'Browser', 'Location', 'Landing pages', 'Users', 'Views', 'Engaged time', 'Last activity'].map((heading) => (
@@ -528,7 +528,7 @@ function AudiencePage() {
                           <Typography className="text-13" color="text.secondary">
                             {rows.length
                               ? 'No rows match the current table filters.'
-                              : 'No processed GA4 audience data is available for this date range yet.'}
+                              : 'No visitor details are available for this date range yet.'}
                           </Typography>
                           {rows.length && hasTableFilters ? (
                             <Button

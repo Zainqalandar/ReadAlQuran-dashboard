@@ -6,16 +6,16 @@ const navigationConfig = [
     children: [
       {
         id: 'dashboard',
-        title: 'Analytics overview',
-        subtitle: 'Your website at a glance',
+        title: 'Google Analytics',
+        subtitle: 'Website visitors and engagement',
         icon: 'heroicons-outline:chart-bar',
         type: 'item',
         url: '/dashboard',
       },
       {
         id: 'live-traffic',
-        title: 'Live activity',
-        subtitle: 'Visitors happening now',
+        title: 'Live visitors',
+        subtitle: 'Visitors active right now',
         icon: 'heroicons-outline:lightning-bolt',
         type: 'item',
         url: '/analytics/live',
@@ -53,8 +53,8 @@ const navigationConfig = [
     children: [
       {
         id: 'visitors',
-        title: 'Visitors',
-        subtitle: 'Returning and new readers',
+        title: 'Visitor insights',
+        subtitle: 'Who visits your website',
         icon: 'heroicons-outline:users',
         type: 'item',
         url: '/analytics/audience',

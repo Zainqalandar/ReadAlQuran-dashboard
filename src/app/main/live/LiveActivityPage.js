@@ -98,7 +98,7 @@ function LiveActivityPage() {
   } = useGetAnalyticsQuery({ view: 'live' });
   const error = getAnalyticsErrorMessage(
     analyticsError,
-    'Unable to load realtime activity.'
+    'Unable to load live visitor activity.'
   );
 
   const activityRows = analytics?.realtime?.activity || EMPTY_ROWS;
@@ -122,9 +122,9 @@ function LiveActivityPage() {
           <Box className="flex flex-wrap items-center justify-between gap-16">
             <Box>
               <Box className="flex flex-wrap items-center gap-10">
-                <Typography className="text-3xl font-extrabold leading-tight">Live activity</Typography>
+                <Typography className="text-3xl font-extrabold leading-tight">Live visitors</Typography>
                 <Chip
-                  label="LAST 30 MINUTES"
+                  label="LIVE NOW"
                   size="small"
                   sx={{
                     height: 24,
@@ -138,7 +138,7 @@ function LiveActivityPage() {
                 />
               </Box>
               <Typography className="mt-8 text-14" color="text.secondary">
-                GA4 events received during the current realtime window.
+                See the visitor activity happening on your website right now, updated continuously.
               </Typography>
             </Box>
             <Box className="flex items-center gap-10">
@@ -179,7 +179,7 @@ function LiveActivityPage() {
                 elevation={0}
                 sx={{ backgroundColor: 'background.paper', border: '1px solid #27272a' }}
               >
-                <Typography className="text-14 font-semibold">Loading GA4 realtime activity</Typography>
+                <Typography className="text-14 font-semibold">Loading live visitor activity</Typography>
                 <LinearProgress className="mt-16" color="primary" />
               </Paper>
             ) : null}
@@ -198,15 +198,15 @@ function LiveActivityPage() {
                   color: 'text.primary',
                 }}
               >
-                {error}. Make sure ReadAlQuran is running and you are signed in as an admin.
+                {error}. Please retry, or contact support if the problem continues.
               </Alert>
             ) : null}
 
             <Box className="grid grid-cols-1 gap-16 sm:grid-cols-3">
               <RealtimeMetric
-                label="Active now"
+                label="Active visitors"
                 value={formatNumber(analytics?.realtime?.activeUsers)}
-                helper="Distinct active readers reported by GA4."
+                helper="Unique visitors active on your website in the last 30 minutes."
                 icon="heroicons-outline:bolt"
               />
               <RealtimeMetric
@@ -214,17 +214,17 @@ function LiveActivityPage() {
                 value={formatNumber(activityRows.length)}
                 helper={
                   hasAggregateFallback
-                    ? 'GA4 detailed rows are still catching up.'
-                    : 'Anonymous event groups by page, device and location.'
+                    ? 'Detailed visitor activity is still being prepared.'
+                    : 'Anonymous groups by page, device, and location.'
                 }
                 icon="heroicons-outline:collection"
               />
               <RealtimeMetric
-                label="Events in window"
+                label="Events in last 30 minutes"
                 value={hasAggregateFallback ? 'Pending' : formatNumber(realtimeEvents)}
                 helper={
                   hasAggregateFallback
-                    ? 'Event and page breakdown will appear after GA4 exposes it.'
+                    ? 'The event and page breakdown will appear shortly.'
                     : `${formatNumber(realtimeViews)} page views across the grouped activity.`
                 }
                 icon="heroicons-outline:cursor-click"
@@ -241,7 +241,7 @@ function LiveActivityPage() {
                 '& .MuiAlert-icon': { color: '#9fc2ff' },
               }}
             >
-              Each row is an anonymous GA4 event group, not an individual person or IP address. Active users can appear in more than one row when they generate multiple events.
+              Rows represent anonymous activity groups, not individual people or IP addresses. The same visitor can appear in more than one group when they generate multiple events.
             </Alert>
 
             <Paper
@@ -250,14 +250,14 @@ function LiveActivityPage() {
               sx={{ backgroundColor: 'background.paper', border: '1px solid #27272a' }}
             >
               <Box className="border-b p-20" sx={{ borderColor: '#27272a' }}>
-                <Typography className="text-16 font-bold">Realtime activity stream</Typography>
+                <Typography className="text-16 font-bold">What is happening now</Typography>
                 <Typography className="mt-4 text-12" color="text.secondary">
-                  Current GA4 activity, from the present moment back to 30 minutes ago.
+                  Website activity from the present moment back to 30 minutes ago.
                 </Typography>
               </Box>
 
               <TableContainer sx={{ maxHeight: 620 }}>
-                <Table stickyHeader aria-label="GA4 realtime activity stream">
+                <Table stickyHeader aria-label="Live visitor activity">
                   <TableHead>
                     <TableRow>
                       {['When', 'Page or screen', 'Event', 'Device', 'Location', 'Active users', 'Events', 'Views'].map((heading) => (
@@ -348,7 +348,7 @@ function LiveActivityPage() {
                       <TableRow>
                         <TableCell align="center" colSpan={8} sx={{ borderColor: '#27272a', py: 48 }}>
                           <Typography className="text-13" color="text.secondary">
-                            No GA4 realtime activity in the last 30 minutes.
+                            No visitor activity in the last 30 minutes.
                           </Typography>
                         </TableCell>
                       </TableRow>

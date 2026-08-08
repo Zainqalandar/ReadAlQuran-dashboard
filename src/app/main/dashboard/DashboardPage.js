@@ -121,33 +121,33 @@ function DashboardPage() {
 
     return [
       {
-        label: 'Visitors in selected range',
+        label: 'Visitors',
         value: formatNumber(monthly.activeUsers),
-        helper: `${formatNumber(monthly.sessions)} sessions in this date range`,
+        helper: `${formatNumber(monthly.sessions)} visits in this period`,
         icon: 'heroicons-outline:users',
       },
       {
-        label: 'Sessions in selected range',
+        label: 'Sessions',
         value: formatNumber(monthly.sessions),
-        helper: `${formatNumber(monthly.activeUsers)} active users in this date range`,
+        helper: `${formatNumber(monthly.activeUsers)} visitors in this period`,
         icon: 'heroicons-outline:clock',
       },
       {
-        label: 'Views in selected range',
+        label: 'Page views',
         value: formatNumber(monthly.pageViews),
-        helper: `${formatNumber(monthly.totalUsers)} total users counted by GA4`,
+        helper: `${formatNumber(monthly.totalUsers)} total visitors in this period`,
         icon: 'heroicons-outline:document-chart-bar',
       },
       {
-        label: 'Engaged time in selected range',
+        label: 'Engagement time',
         value: formatMinutes(monthly.engagementMinutes),
-        helper: `${formatSessionSeconds(monthly.averageSessionSeconds)} average session duration`,
+        helper: `${formatSessionSeconds(monthly.averageSessionSeconds)} average visit duration`,
         icon: 'heroicons-outline:chart-bar',
       },
       {
-        label: 'Active last 30 min',
+        label: 'Active now',
         value: formatNumber(realtime.activeUsers),
-        helper: 'GA4 realtime active users',
+        helper: 'Visitors active on your website right now',
         icon: 'heroicons-outline:bolt',
       },
     ];
@@ -164,7 +164,7 @@ function DashboardPage() {
             <Box>
               <Box className="flex flex-wrap items-center gap-10">
                 <Typography className="text-3xl font-extrabold leading-tight">
-                  Analytics overview
+                  Google Analytics overview
                 </Typography>
                 <Box
                   className="rounded-full px-10 py-4"
@@ -174,12 +174,12 @@ function DashboardPage() {
                   }}
                 >
                   <Typography className="text-10 font-bold uppercase tracking-wide" color="primary.light">
-                    GA4 connected
+                    Google Analytics connected
                   </Typography>
                 </Box>
               </Box>
               <Typography className="mt-8 text-14" color="text.secondary">
-                Website intelligence for {formatAnalyticsDateRange(dateRange)}.
+                Visitors, engagement, and page views for {formatAnalyticsDateRange(dateRange)}.
               </Typography>
             </Box>
             <Box className="flex flex-wrap items-center gap-10">
@@ -231,7 +231,7 @@ function DashboardPage() {
                 sx={{ backgroundColor: 'background.paper', border: '1px solid #27272a' }}
               >
                 <Typography className="text-14 font-semibold">
-                  Loading Google Analytics data
+                  Loading Google Analytics overview
                 </Typography>
                 <LinearProgress className="mt-16" color="primary" />
               </Paper>
@@ -251,7 +251,7 @@ function DashboardPage() {
                   color: 'text.primary',
                 }}
               >
-                {error}. Make sure ReadAlQuran is running, you are signed in as admin, and GA4 credentials are available.
+                {error}. Please retry, or contact support if the problem continues.
               </Alert>
             ) : null}
 

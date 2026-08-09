@@ -26,6 +26,14 @@ export const adminApi = createApi({
       }),
       providesTags: ['AdminUsers'],
     }),
+    deleteUser: builder.mutation({
+      query: (id) => ({
+        url: 'alhuda',
+        method: 'DELETE',
+        params: { path: `users/${id}` },
+      }),
+      invalidatesTags: ['AdminUsers', 'NotificationDevices', 'AdminActivity'],
+    }),
     deleteFeedback: builder.mutation({
       query: (id) => ({
         url: 'alhuda',
@@ -90,6 +98,7 @@ export function getAdminApiErrorMessage(error, fallbackMessage) {
 
 export const {
   useGetAdminUsersQuery,
+  useDeleteUserMutation,
   useGetGuestPushDevicesQuery,
   useGetNotificationDevicesQuery,
   useGetAdminActivityQuery,

@@ -25,6 +25,7 @@ import { useMemo, useState } from 'react';
 import {
   getAdminApiErrorMessage,
   useDeleteFeedbackMutation,
+  useDeleteUserMutation,
   useGetAdminUsersQuery,
 } from './adminApi';
 
@@ -342,8 +343,11 @@ function UsersFeedbackPage() {
     useGetAdminUsersQuery();
   const [deleteFeedback, { error: deleteError, isLoading: isDeleting }] =
     useDeleteFeedbackMutation();
+  const [deleteUser, { error: deleteUserError, isLoading: isDeletingUser }] =
+    useDeleteUserMutation();
   const [query, setQuery] = useState('');
   const [feedbackToDelete, setFeedbackToDelete] = useState(null);
+  const [userToDelete, setUserToDelete] = useState(null);
   const normalizedQuery = query.trim().toLowerCase();
   const users = Array.isArray(data?.users) ? data.users : [];
   const feedback = Array.isArray(data?.feedback) ? data.feedback : [];
@@ -393,6 +397,10 @@ function UsersFeedbackPage() {
     deleteError,
     'Unable to delete feedback.'
   );
+  const removeUserError = getAdminApiErrorMessage(
+    deleteUserError,
+    'Unable to delete this reader.'
+  );
 
   const confirmDelete = async () => {
     if (!feedbackToDelete) return;
@@ -401,6 +409,16 @@ function UsersFeedbackPage() {
       setFeedbackToDelete(null);
     } catch {
       // The API error is rendered beneath the feedback list.
+    }
+  };
+
+  const confirmUserDelete = async () => {
+    if (!userToDelete) return;
+    try {
+      await deleteUser(userToDelete.id).unwrap();
+      setUserToDelete(null);
+    } catch {
+      // The API error is rendered above the readers table.
     }
   };
 
@@ -480,8 +498,13 @@ function UsersFeedbackPage() {
                   Readers ({filteredUsers.length})
                 </Typography>
               </Box>
+              {deleteUserError ? (
+                <Alert className="m-16" severity="error">
+                  {removeUserError}
+                </Alert>
+              ) : null}
               <Box className="overflow-x-auto">
-                <table className="w-full min-w-[920px] text-left">
+                <table className="w-full min-w-[1000px] text-left">
                   <thead className="text-zinc-400 bg-white/[0.025] text-xs uppercase tracking-wide">
                     <tr>
                       <th className="px-20 py-12">Reader</th>
@@ -491,6 +514,7 @@ function UsersFeedbackPage() {
                       <th className="px-20 py-12">Website time</th>
                       <th className="px-20 py-12">Audio time</th>
                       <th className="px-20 py-12">Saved Quran state</th>
+                      <th className="px-20 py-12 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -572,6 +596,29 @@ function UsersFeedbackPage() {
                             {(user.favoriteSurahIds || []).length} favourites ·{' '}
                             {(user.bookmarkedAyahs || []).length} bookmarks
                           </td>
+                          <td className="px-20 py-14 text-right">
+                            <Tooltip title="Delete reader and all stored account data">
+                              <span>
+                                <IconButton
+                                  aria-label={`Delete ${readerName}`}
+                                  className="h-32 w-32"
+                                  disabled={isDeletingUser}
+                                  onClick={() => setUserToDelete(user)}
+                                  size="small"
+                                  sx={{
+                                    border: '1px solid rgba(248, 113, 113, .24)',
+                                    color: '#fca5a5',
+                                    '&:hover': {
+                                      backgroundColor: 'rgba(248, 113, 113, .1)',
+                                      borderColor: 'rgba(248, 113, 113, .42)',
+                                    },
+                                  }}
+                                >
+                                  <DeleteIcon fontSize="small" />
+                                </IconButton>
+                              </span>
+                            </Tooltip>
+                          </td>
                         </tr>
                       );
                     })}
@@ -579,7 +626,7 @@ function UsersFeedbackPage() {
                       <tr>
                         <td
                           className="text-zinc-400 px-20 py-20 text-sm"
-                          colSpan="7"
+                          colSpan="8"
                         >
                           No matching readers yet.
                         </td>
@@ -667,6 +714,37 @@ function UsersFeedbackPage() {
                   onClick={confirmDelete}
                 >
                   {isDeleting ? 'Deleting...' : 'Delete'}
+                </Button>
+              </DialogActions>
+            </Dialog>
+
+            <Dialog
+              open={Boolean(userToDelete)}
+              onClose={() => !isDeletingUser && setUserToDelete(null)}
+            >
+              <DialogTitle>Delete reader permanently?</DialogTitle>
+              <DialogContent>
+                <DialogContentText>
+                  This permanently deletes {getPersonName(userToDelete)}'s account,
+                  saved Quran state, preferences, notifications, push subscriptions,
+                  feedback, device visit records, and notification delivery history.
+                  If they sign in with Google again later, a new empty account will be
+                  created.
+                </DialogContentText>
+              </DialogContent>
+              <DialogActions>
+                <Button
+                  disabled={isDeletingUser}
+                  onClick={() => setUserToDelete(null)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  color="error"
+                  disabled={isDeletingUser}
+                  onClick={confirmUserDelete}
+                >
+                  {isDeletingUser ? 'Deleting account...' : 'Delete account'}
                 </Button>
               </DialogActions>
             </Dialog>
